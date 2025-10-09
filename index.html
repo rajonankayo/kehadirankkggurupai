@@ -210,7 +210,7 @@
                 <div id="emptyState" class="text-center py-8 text-gray-500">
                     <div class="text-4xl mb-2">📝</div>
                     <p>Belum ada peserta yang hadir</p>
-                    <p class="text-sm">Scan barcode atau input manual untuk menambah kehadiran</p>
+                    <p class="text-sm">Scan QR Code atau input manual untuk menambah kehadiran</p>
                 </div>
             </div>
         </div>
@@ -379,7 +379,7 @@
             <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-full overflow-y-auto">
                 <div class="p-6">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold text-gray-800">📱 Barcode Kehadiran</h3>
+                        <h3 class="text-lg font-semibold text-gray-800">📱 QR Code Kehadiran</h3>
                         <button id="closeBarcodeModal" class="text-gray-500 hover:text-gray-700 text-2xl">
                             ✕
                         </button>
@@ -397,16 +397,16 @@
                         </div>
                         
                         <p class="text-xs text-gray-500 mb-4">
-                            Scan barcode linear ini dengan scanner barcode untuk mencatat kehadiran secara otomatis
+                            Scan QR Code ini dengan kamera HP untuk mencatat kehadiran secara otomatis
                         </p>
                     </div>
                     
                     <div class="flex gap-3">
                         <button id="downloadBarcode" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold transition-colors">
-                            💾 Download Barcode
+                            💾 Download QR Code
                         </button>
                         <button id="printBarcode" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition-colors">
-                            🖨️ Print Barcode
+                            🖨️ Print QR Code
                         </button>
                     </div>
                 </div>
@@ -1187,7 +1187,7 @@
                                 🗑️ Hapus
                             </button>
                             <button onclick="generateBarcode(${item.id})" class="text-green-600 hover:text-green-800 text-sm font-medium">
-                                📱 Barcode
+                                📱 QR Code
                             </button>
                         </div>
                     </td>
@@ -1307,69 +1307,97 @@
             // Generate barcode
             const canvas = document.getElementById('barcodeCanvas');
             
-            // Set canvas size for barcode
+            // Set canvas size for QR Code
             canvas.width = 300;
-            canvas.height = 120;
+            canvas.height = 300;
             
             console.log('Generating barcode for:', teacher.name);
             console.log('Barcode text:', barcodeText);
             
-            // Check if JsBarcode library is loaded
-            if (typeof JsBarcode === 'undefined') {
-                console.error('JsBarcode library not loaded');
-                createFallbackBarcode(canvas.getContext('2d'), teacher);
+            // Check if QRCode library is loaded
+            if (typeof QRCode === 'undefined') {
+                console.error('QRCode library not loaded');
+                createFallbackQRCode(canvas.getContext('2d'), teacher);
                 return;
             }
             
             try {
-                // Generate Code128 barcode
-                JsBarcode(canvas, barcodeText, {
-                    format: "CODE128",
-                    width: 2,
-                    height: 80,
-                    displayValue: true,
-                    fontSize: 14,
-                    textMargin: 5,
-                    background: "#ffffff",
-                    lineColor: "#000000"
+                // Generate QR Code
+                QRCode.toCanvas(canvas, barcodeText, {
+                    width: 300,
+                    height: 300,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#ffffff'
+                    }
+                }, function (error) {
+                    if (error) {
+                        console.error('QR Code generation error:', error);
+                        createFallbackQRCode(canvas.getContext('2d'), teacher);
+                    } else {
+                        console.log('QR Code generated successfully');
+                    }
                 });
-                console.log('Barcode generated successfully');
             } catch (e) {
-                console.error('Barcode generation exception:', e);
-                createFallbackBarcode(canvas.getContext('2d'), teacher);
+                console.error('QR Code generation exception:', e);
+                createFallbackQRCode(canvas.getContext('2d'), teacher);
             }
         }
 
-        function createFallbackBarcode(ctx, teacher) {
-            // Create a simple visual barcode as fallback
+        function createFallbackQRCode(ctx, teacher) {
+            // Create a simple visual QR Code as fallback
             const canvas = ctx.canvas;
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Draw barcode-like pattern
+            // Draw QR Code-like pattern
             ctx.fillStyle = '#000000';
-            const barcodeText = `PAI${teacher.id.toString().padStart(4, '0')}`;
+            const qrText = `PAI${teacher.id.toString().padStart(4, '0')}`;
             
-            // Draw vertical lines to simulate barcode
-            let x = 20;
-            for (let i = 0; i < barcodeText.length; i++) {
-                const char = barcodeText.charCodeAt(i);
-                for (let j = 0; j < 8; j++) {
-                    if ((char >> j) & 1) {
-                        ctx.fillRect(x, 20, 3, 60);
+            // Draw grid pattern to simulate QR Code
+            const cellSize = 8;
+            const startX = 50;
+            const startY = 50;
+            const gridSize = 15;
+            
+            // Create a simple pattern based on teacher ID
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    // Create pseudo-random pattern based on position and teacher ID
+                    const seed = (i * gridSize + j + teacher.id) % 7;
+                    if (seed < 3) {
+                        ctx.fillRect(startX + i * cellSize, startY + j * cellSize, cellSize - 1, cellSize - 1);
                     }
-                    x += 4;
                 }
-                x += 8; // Space between characters
             }
             
-            // Add text below barcode
+            // Draw corner squares (QR Code markers)
+            const markerSize = cellSize * 3;
+            // Top-left
+            ctx.fillRect(startX, startY, markerSize, markerSize);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(startX + cellSize, startY + cellSize, cellSize, cellSize);
+            
+            // Top-right
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(startX + (gridSize - 3) * cellSize, startY, markerSize, markerSize);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(startX + (gridSize - 2) * cellSize, startY + cellSize, cellSize, cellSize);
+            
+            // Bottom-left
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(startX, startY + (gridSize - 3) * cellSize, markerSize, markerSize);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(startX + cellSize, startY + (gridSize - 2) * cellSize, cellSize, cellSize);
+            
+            // Add text below QR Code
             ctx.fillStyle = '#000000';
             ctx.font = 'bold 14px monospace';
             ctx.textAlign = 'center';
-            ctx.fillText(barcodeText, canvas.width / 2, 100);
+            ctx.fillText(qrText, canvas.width / 2, startY + gridSize * cellSize + 30);
             
-            showMessage('⚠️ Barcode library error, menggunakan barcode alternatif', 'error');
+            showMessage('⚠️ QR Code library error, menggunakan QR Code alternatif', 'error');
         }
 
         // Modal close functionality
@@ -1390,11 +1418,11 @@
             
             const canvas = document.getElementById('barcodeCanvas');
             const link = document.createElement('a');
-            link.download = `Barcode_${currentBarcodeData.name.replace(/[^a-zA-Z0-9]/g, '_')}.png`;
+            link.download = `QRCode_${currentBarcodeData.name.replace(/[^a-zA-Z0-9]/g, '_')}.png`;
             link.href = canvas.toDataURL();
             link.click();
             
-            showMessage('✅ Barcode berhasil didownload!', 'success');
+            showMessage('✅ QR Code berhasil didownload!', 'success');
         });
 
         // Print barcode
@@ -1502,5 +1530,5 @@
         updateTeacherList();
         initializeSampleData();
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98bbf91202459cf6',t:'MTc1OTk5MjkzMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98bc08ba25105fd8',t:'MTc1OTk5MzU3My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
