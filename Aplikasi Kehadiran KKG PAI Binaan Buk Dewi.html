@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Hadir KKG PAI Binaan - Dewi Yuliani, S.Ag, MA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+
+        .scanner-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        #video {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        .scanner-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border: 3px solid #10b981;
+            border-radius: 12px;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.3);
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-emerald-50 to-blue-50 min-h-full">
+    <div class="container mx-auto px-4 py-6">
+        <!-- Header -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <div class="text-center">
+                <h1 class="text-2xl font-bold text-gray-800 mb-2">📚 Daftar Hadir KKG PAI Binaan</h1>
+                <p class="text-lg text-emerald-600 font-semibold">Dewi Yuliani, S.Ag, MA</p>
+                <p class="text-sm text-gray-600">Pengawas PAI</p>
+                <div class="mt-4 p-3 bg-emerald-50 rounded-lg">
+                    <p class="text-sm text-emerald-700" id="currentDate"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <div class="flex flex-wrap gap-2 mb-6">
+                <button id="attendanceTab"
+                    class="tab-btn active px-4 py-2 rounded-lg font-semibold transition-colors bg-emerald-600 text-white">
+                    📋 Kehadiran
+                </button>
+                <button id="teacherDataTab"
+                    class="tab-btn px-4 py-2 rounded-lg font-semibold transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300 hidden">
+                    👥 Data Guru PAI
+                </button>
+                <button id="adminTab"
+                    class="tab-btn px-4 py-2 rounded-lg font-semibold transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    🔐 Admin Login
+                </button>
+            </div>
+        </div>
+
+        <!-- Attendance Tab Content -->
+        <div id="attendanceContent">
+            <!-- Scanner Section -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">📱 Scan Barcode Kehadiran</h2>
+
+                <div class="scanner-container mb-4">
+                    <video id="video" autoplay muted playsinline style="display: none;"></video>
+                    <canvas id="canvas" style="display: none;"></canvas>
+                    <div class="scanner-overlay pulse" id="scannerOverlay" style="display: none;"></div>
+
+                    <div id="scannerPlaceholder" class="bg-gray-100 rounded-xl h-72 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-6xl mb-4">📷</div>
+                            <button id="startScanBtn"
+                                class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                                Mulai Scan Barcode
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="scanResult" class="hidden p-4 rounded-lg mb-4"></div>
+
+                <div class="text-center">
+                    <button id="stopScanBtn"
+                        class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors hidden">
+                        Berhenti Scan
+                    </button>
+                </div>
+            </div>
+
+
+
+            <!-- Manual Entry -->
+            <div id="manualEntrySection" class="bg-white rounded-xl shadow-lg p-6 mb-6 hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">✏️ Input Data Kehadiran</h3>
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm text-emerald-600 font-medium">👤 Admin: <span
+                                id="loggedInUser"></span></span>
+                        <button id="logoutBtn"
+                            class="text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg transition-colors">
+                            🚪 Logout
+                        </button>
+                    </div>
+                </div>
+                <form id="manualForm" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span class="text-red-500">*</span> Nama Lengkap
+                            </label>
+                            <select id="manualName" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
+                                <option value="">Pilih nama guru...</option>
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">Pilih nama dari database guru PAI</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span class="text-red-500">*</span> Nama Sekolah
+                            </label>
+                            <input type="text" id="manualSchool" required readonly
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                                placeholder="Akan terisi otomatis">
+                            <p class="text-xs text-gray-500 mt-1">Terisi otomatis setelah memilih nama</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span class="text-red-500">*</span> Kecamatan
+                            </label>
+                            <input type="text" id="manualDistrict" required readonly
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                                placeholder="Akan terisi otomatis">
+                            <p class="text-xs text-gray-500 mt-1">Terisi otomatis setelah memilih nama</p>
+                        </div>
+                    </div>
+
+
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span class="text-red-500">*</span> Status Kehadiran
+                            </label>
+                            <select id="attendanceStatus" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
+                                <option value="">Pilih status kehadiran</option>
+                                <option value="Hadir">✅ Hadir</option>
+                                <option value="Sakit">🤒 Sakit</option>
+                                <option value="Izin">📝 Izin</option>
+                                <option value="Alpha">❌ Alpha</option>
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">Pilih status kehadiran peserta</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button type="submit"
+                            class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2">
+                            <span>✅</span> Tambah Kehadiran
+                        </button>
+                        <button type="button" id="clearFormBtn"
+                            class="px-6 bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-lg font-semibold transition-colors">
+                            🗑️ Bersihkan
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Attendance List -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">📋 Daftar Kehadiran</h3>
+                    <div class="text-sm text-gray-600">
+                        <div class="flex flex-wrap gap-2">
+                            <span>Total: <span id="totalCount" class="font-semibold text-emerald-600">0</span></span>
+                            <span class="text-green-600">✅ <span id="hadirCount">0</span></span>
+                            <span class="text-yellow-600">🤒 <span id="sakitCount">0</span></span>
+                            <span class="text-blue-600">📝 <span id="izinCount">0</span></span>
+                            <span class="text-red-600">❌ <span id="alphaCount">0</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="text-left py-3 px-2 font-semibold text-gray-700">No</th>
+                                <th class="text-left py-3 px-2 font-semibold text-gray-700">Nama Lengkap</th>
+                                <th class="text-left py-3 px-2 font-semibold text-gray-700">Sekolah</th>
+                                <th class="text-left py-3 px-2 font-semibold text-gray-700">Kecamatan</th>
+                                <th class="text-left py-3 px-2 font-semibold text-gray-700">Status</th>
+                                <th class="text-left py-3 px-2 font-semibold text-gray-700">Waktu Input</th>
+                                <th class="text-left py-3 px-2 font-semibold text-gray-700">Metode</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceList">
+                            <!-- Attendance records will be added here -->
+                        </tbody>
+                    </table>
+
+                    <div id="emptyState" class="text-center py-8 text-gray-500">
+                        <div class="text-4xl mb-2">📝</div>
+                        <p>Belum ada peserta yang hadir</p>
+                        <p class="text-sm">Scan barcode atau input manual untuk menambah kehadiran</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Button -->
+            <div class="mt-6 text-center">
+                <button id="exportBtn"
+                    class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                    📊 Export Daftar Hadir
+                </button>
+            </div>
+        </div>
+
+        <!-- Admin Tab Content -->
+        <div id="adminContent" class="hidden">
+            <!-- Admin Login -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">🔐 Login Admin</h3>
+                <p class="text-sm text-gray-600 mb-4">Masuk sebagai admin untuk mengakses fitur input manual kehadiran
+                    dan manajemen data guru</p>
+
+                <div id="loginSection">
+                    <form id="loginForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Username Admin</label>
+                            <input type="text" id="adminUsername" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                                placeholder="Masukkan username admin">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                            <input type="password" id="adminPassword" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                                placeholder="Masukkan password">
+                        </div>
+                        <div class="flex gap-3">
+                            <button type="submit"
+                                class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                                🔓 Login Admin
+                            </button>
+                        </div>
+                    </form>
+                    <div id="loginError" class="hidden mt-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm"></div>
+                </div>
+
+                <div id="adminDashboard" class="hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-800">👋 Selamat Datang, Admin!</h4>
+                            <p class="text-sm text-emerald-600 font-medium">Login sebagai: <span
+                                    id="loggedInUserDisplay"></span></p>
+                        </div>
+                        <button id="logoutBtnMain"
+                            class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+                            🚪 Logout
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-emerald-50 p-4 rounded-lg">
+                            <h5 class="font-semibold text-emerald-800 mb-2">📋 Fitur Kehadiran</h5>
+                            <p class="text-sm text-emerald-700 mb-3">Kelola data kehadiran peserta KKG PAI</p>
+                            <button onclick="switchTab('attendance')"
+                                class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+                                Buka Kehadiran
+                            </button>
+                        </div>
+
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h5 class="font-semibold text-blue-800 mb-2">👥 Data Guru PAI</h5>
+                            <p class="text-sm text-blue-700 mb-3">Kelola database guru PAI</p>
+                            <button onclick="switchTab('teacherData')"
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+                                Buka Data Guru
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                        <h5 class="font-semibold text-gray-800 mb-2">ℹ️ Informasi Admin</h5>
+                        <div class="text-sm text-gray-600 space-y-1">
+                            <p>• Sebagai admin, Anda dapat menginput kehadiran secara manual</p>
+                            <p>• Anda dapat mengelola data guru PAI (tambah, edit, hapus)</p>
+                            <p>• Semua data dapat diekspor ke format CSV</p>
+                            <p>• Pastikan logout setelah selesai menggunakan sistem</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Teacher Data Tab Content -->
+        <div id="teacherDataContent" class="hidden">
+            <!-- Teacher Data Management -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">👥 Data Guru PAI</h3>
+                    <button id="addTeacherBtn"
+                        class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+                        ➕ Tambah Guru
+                    </button>
+                </div>
+
+                <!-- Teacher Form -->
+                <div id="teacherFormSection" class="hidden mb-6 p-4 bg-gray-50 rounded-lg">
+                    <h4 class="text-md font-semibold text-gray-800 mb-4">📝 Form Data Guru</h4>
+                    <form id="teacherForm" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <span class="text-red-500">*</span> Nama Lengkap
+                                </label>
+                                <input type="text" id="teacherName" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                                    placeholder="Contoh: Ahmad Budi Santoso, S.Pd.I">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <span class="text-red-500">*</span> Nama Sekolah
+                                </label>
+                                <input type="text" id="teacherSchool" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                                    placeholder="Contoh: SDN 01 Sukamaju">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <span class="text-red-500">*</span> Kecamatan
+                                </label>
+                                <input type="text" id="teacherDistrict" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                                    placeholder="Contoh: Sukamaju">
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <button type="submit"
+                                class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                                ✅ Simpan Data
+                            </button>
+                            <button type="button" id="cancelTeacherBtn"
+                                class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                                ❌ Batal
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Teacher List -->
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="text-left py-3 px-2 font-semibold text-gray-700">No</th>
+                                <th class="text-left py-3 px-2 font-semibold text-gray-700">Nama Lengkap</th>
+                                <th class="text-left py-3 px-2 font-semibold text-gray-700">Sekolah</th>
+                                <th class="text-left py-3 px-2 font-semibold text-gray-700">Kecamatan</th>
+                                <th class="text-left py-3 px-2 font-semibold text-gray-700">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teacherList">
+                            <!-- Teacher records will be added here -->
+                        </tbody>
+                    </table>
+
+                    <div id="teacherEmptyState" class="text-center py-8 text-gray-500">
+                        <div class="text-4xl mb-2">👥</div>
+                        <p>Belum ada data guru PAI</p>
+                        <p class="text-sm">Klik "Tambah Guru" untuk menambah data guru</p>
+                    </div>
+                </div>
+
+                <!-- Teacher Export Button -->
+                <div class="mt-6 text-center">
+                    <button id="exportTeacherBtn"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                        📊 Export Data Guru
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barcode Modal -->
+        <div id="barcodeModal"
+            class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-full overflow-y-auto">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">📱 Barcode Kehadiran</h3>
+                        <button id="closeBarcodeModal" class="text-gray-500 hover:text-gray-700 text-2xl">
+                            ✕
+                        </button>
+                    </div>
+
+                    <div class="text-center mb-4">
+                        <div id="teacherInfo" class="bg-emerald-50 p-4 rounded-lg mb-4">
+                            <h4 id="barcodeTeacherName" class="font-semibold text-emerald-800"></h4>
+                            <p id="barcodeTeacherSchool" class="text-sm text-emerald-600"></p>
+                            <p id="barcodeTeacherDistrict" class="text-sm text-emerald-600"></p>
+                        </div>
+
+                        <div id="barcodeContainer" class="bg-white p-4 rounded-lg border-2 border-gray-200 mb-4">
+                            <canvas id="barcodeCanvas"></canvas>
+                        </div>
+
+                        <p class="text-xs text-gray-500 mb-4">
+                            Scan barcode ini untuk mencatat kehadiran secara otomatis
+                        </p>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button id="downloadBarcode"
+                            class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                            💾 Download Barcode
+                        </button>
+                        <button id="printBarcode"
+                            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                            🖨️ Print Barcode
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let stream = null;
+        let scanning = false;
+        let attendanceData = [];
+        let teacherData = [];
+        let isAdminLoggedIn = false;
+        let currentAdmin = '';
+        let editingTeacherId = null;
+
+        // Admin credentials (in real app, this should be secured)
+        const adminCredentials = {
+            'admin': 'admin123',
+            'dewi': 'dewi2024',
+            'pengawas': 'pai123'
+        };
+
+        // Set current date
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('id-ID', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        // Tab functionality
+        document.getElementById('attendanceTab').addEventListener('click', function () {
+            switchTab('attendance');
+        });
+
+        document.getElementById('teacherDataTab').addEventListener('click', function () {
+            switchTab('teacherData');
+        });
+
+        document.getElementById('adminTab').addEventListener('click', function () {
+            switchTab('admin');
+        });
+
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-emerald-600', 'text-white');
+                btn.classList.add('bg-gray-200', 'text-gray-700');
+            });
+
+            // Hide all content
+            document.getElementById('attendanceContent').classList.add('hidden');
+            document.getElementById('teacherDataContent').classList.add('hidden');
+            document.getElementById('adminContent').classList.add('hidden');
+
+            // Show/hide content
+            if (tabName === 'attendance') {
+                document.getElementById('attendanceTab').classList.add('active', 'bg-emerald-600', 'text-white');
+                document.getElementById('attendanceTab').classList.remove('bg-gray-200', 'text-gray-700');
+                document.getElementById('attendanceContent').classList.remove('hidden');
+            } else if (tabName === 'teacherData') {
+                document.getElementById('teacherDataTab').classList.add('active', 'bg-emerald-600', 'text-white');
+                document.getElementById('teacherDataTab').classList.remove('bg-gray-200', 'text-gray-700');
+                document.getElementById('teacherDataContent').classList.remove('hidden');
+            } else if (tabName === 'admin') {
+                document.getElementById('adminTab').classList.add('active', 'bg-emerald-600', 'text-white');
+                document.getElementById('adminTab').classList.remove('bg-gray-200', 'text-gray-700');
+                document.getElementById('adminContent').classList.remove('hidden');
+            }
+        }
+
+        // Scanner functionality
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const startScanBtn = document.getElementById('startScanBtn');
+        const stopScanBtn = document.getElementById('stopScanBtn');
+        const scannerPlaceholder = document.getElementById('scannerPlaceholder');
+        const scannerOverlay = document.getElementById('scannerOverlay');
+        const scanResult = document.getElementById('scanResult');
+
+        startScanBtn.addEventListener('click', startScanner);
+        stopScanBtn.addEventListener('click', stopScanner);
+
+        // Login functionality
+        document.getElementById('loginForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const username = document.getElementById('adminUsername').value.trim();
+            const password = document.getElementById('adminPassword').value.trim();
+            const loginError = document.getElementById('loginError');
+
+            if (adminCredentials[username] && adminCredentials[username] === password) {
+                isAdminLoggedIn = true;
+                currentAdmin = username;
+
+                // Show admin dashboard, hide login form
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                document.getElementById('loggedInUserDisplay').textContent = username;
+
+                // Show manual entry section in attendance tab
+                document.getElementById('manualEntrySection').classList.remove('hidden');
+                document.getElementById('loggedInUser').textContent = username;
+
+                // Show teacher data tab after login
+                document.getElementById('teacherDataTab').classList.remove('hidden');
+
+                // Clear login form
+                document.getElementById('adminUsername').value = '';
+                document.getElementById('adminPassword').value = '';
+                loginError.classList.add('hidden');
+
+                // Show success message
+                showLoginMessage('✅ Login berhasil! Selamat datang, ' + username, 'success');
+            } else {
+                loginError.textContent = '❌ Username atau password salah. Silakan coba lagi.';
+                loginError.classList.remove('hidden');
+
+                // Clear password field
+                document.getElementById('adminPassword').value = '';
+            }
+        });
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', function () {
+            performLogout();
+        });
+
+        document.getElementById('logoutBtnMain').addEventListener('click', function () {
+            performLogout();
+        });
+
+        function performLogout() {
+            isAdminLoggedIn = false;
+            currentAdmin = '';
+
+            // Show login section, hide admin dashboard and manual entry
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('adminDashboard').classList.add('hidden');
+            document.getElementById('manualEntrySection').classList.add('hidden');
+
+            // Hide teacher data tab after logout
+            document.getElementById('teacherDataTab').classList.add('hidden');
+
+            // Switch to attendance tab if currently on teacher data tab
+            if (!document.getElementById('attendanceContent').classList.contains('hidden')) {
+                // Already on attendance tab, do nothing
+            } else if (!document.getElementById('teacherDataContent').classList.contains('hidden')) {
+                // Currently on teacher data tab, switch to attendance
+                switchTab('attendance');
+            }
+
+            // Clear any form data
+            clearForm();
+
+            showLoginMessage('👋 Logout berhasil. Terima kasih!', 'info');
+        }
+
+        function showLoginMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${type === 'success' ? 'bg-green-100 text-green-800' :
+                type === 'error' ? 'bg-red-100 text-red-800' :
+                    'bg-blue-100 text-blue-800'
+                }`;
+            messageDiv.textContent = message;
+
+            document.body.appendChild(messageDiv);
+
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+        }
+
+        async function startScanner() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' }
+                });
+                video.srcObject = stream;
+
+                scannerPlaceholder.style.display = 'none';
+                video.style.display = 'block';
+                scannerOverlay.style.display = 'block';
+                stopScanBtn.classList.remove('hidden');
+
+                scanning = true;
+                scanBarcode();
+            } catch (err) {
+                showScanResult('❌ Tidak dapat mengakses kamera. Pastikan izin kamera telah diberikan.', 'error');
+            }
+        }
+
+        function stopScanner() {
+            scanning = false;
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+
+            video.style.display = 'none';
+            scannerOverlay.style.display = 'none';
+            scannerPlaceholder.style.display = 'flex';
+            stopScanBtn.classList.add('hidden');
+            scanResult.classList.add('hidden');
+        }
+
+        function scanBarcode() {
+            if (!scanning) return;
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+            if (code) {
+                processBarcode(code.data);
+            } else {
+                requestAnimationFrame(scanBarcode);
+            }
+        }
+
+        function processBarcode(data) {
+            try {
+                // Try to parse as JSON (structured barcode)
+                const parsed = JSON.parse(data);
+                if (parsed.name && parsed.school) {
+                    addAttendance(
+                        parsed.name,
+                        parsed.school,
+                        'Barcode',
+                        parsed.district || '',
+                        parsed.notes || ''
+                    );
+                    showScanResult(`✅ Berhasil scan: ${parsed.name} dari ${parsed.school}`, 'success');
+                } else {
+                    throw new Error('Invalid format');
+                }
+            } catch (e) {
+                // Treat as simple text (name only)
+                const name = data.trim();
+                if (name) {
+                    addAttendance(name, 'Tidak diketahui', 'Barcode', '', '', '');
+                    showScanResult(`✅ Berhasil scan: ${name}`, 'success');
+                } else {
+                    showScanResult('❌ Barcode tidak valid atau kosong', 'error');
+                }
+            }
+
+            // Continue scanning after 2 seconds
+            setTimeout(() => {
+                if (scanning) {
+                    scanBarcode();
+                }
+            }, 2000);
+        }
+
+        function showScanResult(message, type) {
+            scanResult.textContent = message;
+            scanResult.className = `p-4 rounded-lg mb-4 ${type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
+            scanResult.classList.remove('hidden');
+        }
+
+        // Name selection change handler
+        document.getElementById('manualName').addEventListener('change', function () {
+            const selectedTeacherId = this.value;
+
+            if (selectedTeacherId) {
+                const teacher = teacherData.find(t => t.id == selectedTeacherId);
+                if (teacher) {
+                    document.getElementById('manualSchool').value = teacher.school;
+                    document.getElementById('manualDistrict').value = teacher.district;
+                }
+            } else {
+                // Clear fields if no teacher selected
+                document.getElementById('manualSchool').value = '';
+                document.getElementById('manualDistrict').value = '';
+            }
+        });
+
+        // Manual form
+        document.getElementById('manualForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Check if admin is logged in
+            if (!isAdminLoggedIn) {
+                alert('❌ Akses ditolak! Silakan login sebagai admin terlebih dahulu.');
+                return;
+            }
+
+            const selectedTeacherId = document.getElementById('manualName').value;
+            const status = document.getElementById('attendanceStatus').value.trim();
+
+            if (selectedTeacherId && status) {
+                const teacher = teacherData.find(t => t.id == selectedTeacherId);
+                if (teacher) {
+                    addAttendance(teacher.name, teacher.school, 'Manual', teacher.district, '', status);
+                    clearForm();
+
+                    // Show success message
+                    const form = this;
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    const originalHTML = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '✅ Berhasil Ditambahkan!';
+                    submitBtn.disabled = true;
+                    setTimeout(() => {
+                        submitBtn.innerHTML = originalHTML;
+                        submitBtn.disabled = false;
+                    }, 2000);
+                }
+            }
+        });
+
+        // Clear form button
+        document.getElementById('clearFormBtn').addEventListener('click', clearForm);
+
+        function clearForm() {
+            document.getElementById('manualName').value = '';
+            document.getElementById('manualSchool').value = '';
+            document.getElementById('manualDistrict').value = '';
+            document.getElementById('attendanceStatus').value = '';
+        }
+
+        function addAttendance(name, school, method, district = '', notes = '', status = 'Hadir') {
+            // Check for duplicates
+            const existing = attendanceData.find(item =>
+                item.name.toLowerCase() === name.toLowerCase() &&
+                item.school.toLowerCase() === school.toLowerCase()
+            );
+
+            if (existing) {
+                if (method === 'Barcode') {
+                    showScanResult(`⚠️ ${name} sudah tercatat hadir sebelumnya`, 'error');
+                } else {
+                    alert(`⚠️ ${name} dari ${school} sudah tercatat hadir sebelumnya`);
+                }
+                return;
+            }
+
+            const attendance = {
+                id: Date.now(),
+                name: name,
+                school: school,
+                district: district,
+                notes: notes,
+                status: status,
+                time: new Date().toLocaleTimeString('id-ID'),
+                method: method
+            };
+
+            attendanceData.push(attendance);
+            updateAttendanceList();
+        }
+
+        function updateAttendanceList() {
+            const tbody = document.getElementById('attendanceList');
+            const emptyState = document.getElementById('emptyState');
+            const totalCount = document.getElementById('totalCount');
+
+            if (attendanceData.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                totalCount.textContent = '0';
+                document.getElementById('hadirCount').textContent = '0';
+                document.getElementById('sakitCount').textContent = '0';
+                document.getElementById('izinCount').textContent = '0';
+                document.getElementById('alphaCount').textContent = '0';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            totalCount.textContent = attendanceData.length;
+
+            // Update status counts
+            const hadirCount = attendanceData.filter(item => item.status === 'Hadir').length;
+            const sakitCount = attendanceData.filter(item => item.status === 'Sakit').length;
+            const izinCount = attendanceData.filter(item => item.status === 'Izin').length;
+            const alphaCount = attendanceData.filter(item => item.status === 'Alpha').length;
+
+            document.getElementById('hadirCount').textContent = hadirCount;
+            document.getElementById('sakitCount').textContent = sakitCount;
+            document.getElementById('izinCount').textContent = izinCount;
+            document.getElementById('alphaCount').textContent = alphaCount;
+
+            tbody.innerHTML = attendanceData.map((item, index) => `
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="py-3 px-2 text-sm font-medium">${index + 1}</td>
+                    <td class="py-3 px-2">
+                        <div class="font-medium text-gray-900">${item.name}</div>
+                    </td>
+                    <td class="py-3 px-2 text-gray-700 text-sm">${item.school}</td>
+                    <td class="py-3 px-2 text-gray-700 text-sm">${item.district || '-'}</td>
+                    <td class="py-3 px-2">
+                        <span class="px-2 py-1 text-xs rounded-full ${item.status === 'Hadir' ? 'bg-green-100 text-green-800' :
+                    item.status === 'Sakit' ? 'bg-yellow-100 text-yellow-800' :
+                        item.status === 'Izin' ? 'bg-blue-100 text-blue-800' :
+                            'bg-red-100 text-red-800'
+                }">
+                            ${item.status === 'Hadir' ? '✅' : item.status === 'Sakit' ? '🤒' : item.status === 'Izin' ? '📝' : '❌'} ${item.status}
+                        </span>
+                    </td>
+                    <td class="py-3 px-2 text-sm text-gray-600">${item.time}</td>
+                    <td class="py-3 px-2">
+                        <span class="px-2 py-1 text-xs rounded-full ${item.method === 'Barcode' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}">
+                            ${item.method === 'Barcode' ? '📱 Scan' : '✏️ Manual'}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Export functionality
+        document.getElementById('exportBtn').addEventListener('click', function () {
+            if (attendanceData.length === 0) {
+                alert('Tidak ada data kehadiran untuk diekspor');
+                return;
+            }
+
+            const currentDate = new Date().toLocaleDateString('id-ID');
+            const currentTime = new Date().toLocaleTimeString('id-ID');
+            let csvContent = `DAFTAR HADIR KELOMPOK KERJA GURU (KKG) PAI BINAAN\n`;
+            csvContent += `Pengawas: Dewi Yuliani, S.Ag, MA\n`;
+            csvContent += `Tanggal: ${currentDate}\n`;
+            csvContent += `Waktu Export: ${currentTime}\n`;
+            csvContent += `Admin Export: ${currentAdmin || 'Sistem'}\n`;
+            csvContent += `Total Peserta: ${attendanceData.length} orang\n\n`;
+            csvContent += 'No,Nama Lengkap,Sekolah,Kecamatan,Status Kehadiran,Waktu Input,Metode Input,Catatan\n';
+
+            attendanceData.forEach((item, index) => {
+                csvContent += `${index + 1},"${item.name}","${item.school}","${item.district || '-'}","${item.status || 'Hadir'}","${item.time}","${item.method}","${item.notes || '-'}"\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `Daftar_Hadir_KKG_PAI_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Show success message
+            const btn = this;
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '✅ Data Berhasil Diexport!';
+            btn.disabled = true;
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }, 2000);
+        });
+
+        // Teacher Data Management
+        document.getElementById('addTeacherBtn').addEventListener('click', function () {
+            document.getElementById('teacherFormSection').classList.remove('hidden');
+            editingTeacherId = null;
+            clearTeacherForm();
+        });
+
+        document.getElementById('cancelTeacherBtn').addEventListener('click', function () {
+            document.getElementById('teacherFormSection').classList.add('hidden');
+            editingTeacherId = null;
+            clearTeacherForm();
+        });
+
+        document.getElementById('teacherForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const name = document.getElementById('teacherName').value.trim();
+            const school = document.getElementById('teacherSchool').value.trim();
+            const district = document.getElementById('teacherDistrict').value.trim();
+
+            if (name && school && district) {
+                if (editingTeacherId) {
+                    updateTeacher(editingTeacherId, name, school, district);
+                } else {
+                    addTeacher(name, school, district);
+                }
+
+                document.getElementById('teacherFormSection').classList.add('hidden');
+                clearTeacherForm();
+                editingTeacherId = null;
+            }
+        });
+
+        function addTeacher(name, school, district) {
+            // Check for duplicates
+            const existing = teacherData.find(item =>
+                item.name.toLowerCase() === name.toLowerCase() &&
+                item.school.toLowerCase() === school.toLowerCase()
+            );
+
+            if (existing) {
+                alert(`⚠️ ${name} dari ${school} sudah ada dalam database`);
+                return;
+            }
+
+            const teacher = {
+                id: Date.now(),
+                name: name,
+                school: school,
+                district: district
+            };
+
+            teacherData.push(teacher);
+            updateTeacherList();
+
+            // Show success message
+            showMessage('✅ Data guru berhasil ditambahkan!', 'success');
+        }
+
+        function updateTeacher(id, name, school, district) {
+            const index = teacherData.findIndex(item => item.id === id);
+            if (index !== -1) {
+                teacherData[index] = {
+                    id: id,
+                    name: name,
+                    school: school,
+                    district: district
+                };
+                updateTeacherList();
+                showMessage('✅ Data guru berhasil diperbarui!', 'success');
+            }
+        }
+
+        function deleteTeacher(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus data guru ini?')) {
+                teacherData = teacherData.filter(item => item.id !== id);
+                updateTeacherList();
+                showMessage('✅ Data guru berhasil dihapus!', 'success');
+            }
+        }
+
+        function editTeacher(id) {
+            const teacher = teacherData.find(item => item.id === id);
+            if (teacher) {
+                document.getElementById('teacherName').value = teacher.name;
+                document.getElementById('teacherSchool').value = teacher.school;
+                document.getElementById('teacherDistrict').value = teacher.district;
+
+                editingTeacherId = id;
+                document.getElementById('teacherFormSection').classList.remove('hidden');
+            }
+        }
+
+        function clearTeacherForm() {
+            document.getElementById('teacherName').value = '';
+            document.getElementById('teacherSchool').value = '';
+            document.getElementById('teacherDistrict').value = '';
+        }
+
+        function updateTeacherList() {
+            const tbody = document.getElementById('teacherList');
+            const emptyState = document.getElementById('teacherEmptyState');
+
+            if (teacherData.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                updateTeacherSelect();
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            tbody.innerHTML = teacherData.map((item, index) => `
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="py-3 px-2 text-sm font-medium">${index + 1}</td>
+                    <td class="py-3 px-2 font-medium text-gray-900">${item.name}</td>
+                    <td class="py-3 px-2 text-gray-700 text-sm">${item.school}</td>
+                    <td class="py-3 px-2 text-gray-700 text-sm">${item.district}</td>
+
+                    <td class="py-3 px-2">
+                        <div class="flex gap-2">
+                            <button onclick="editTeacher(${item.id})" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                ✏️ Edit
+                            </button>
+                            <button onclick="deleteTeacher(${item.id})" class="text-red-600 hover:text-red-800 text-sm font-medium">
+                                🗑️ Hapus
+                            </button>
+                            <button onclick="generateBarcode(${item.id})" class="text-green-600 hover:text-green-800 text-sm font-medium">
+                                📱 Barcode
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Update teacher select dropdown
+            updateTeacherSelect();
+        }
+
+        function updateTeacherSelect() {
+            const select = document.getElementById('manualName');
+            const currentValue = select.value;
+
+            // Clear existing options except the first one
+            select.innerHTML = '<option value="">Pilih nama guru...</option>';
+
+            // Add teacher options
+            teacherData.forEach(teacher => {
+                const option = document.createElement('option');
+                option.value = teacher.id;
+                option.textContent = teacher.name;
+                select.appendChild(option);
+            });
+
+            // Restore selected value if it still exists
+            if (currentValue && teacherData.find(t => t.id == currentValue)) {
+                select.value = currentValue;
+            }
+        }
+
+        // Export teacher data
+        document.getElementById('exportTeacherBtn').addEventListener('click', function () {
+            if (teacherData.length === 0) {
+                alert('Tidak ada data guru untuk diekspor');
+                return;
+            }
+
+            const currentDate = new Date().toLocaleDateString('id-ID');
+            const currentTime = new Date().toLocaleTimeString('id-ID');
+            let csvContent = `DATA GURU PAI\n`;
+            csvContent += `Pengawas: Dewi Yuliani, S.Ag, MA\n`;
+            csvContent += `Tanggal Export: ${currentDate}\n`;
+            csvContent += `Waktu Export: ${currentTime}\n`;
+            csvContent += `Admin Export: ${currentAdmin || 'Sistem'}\n`;
+            csvContent += `Total Guru: ${teacherData.length} orang\n\n`;
+            csvContent += 'No,Nama Lengkap,Sekolah,Kecamatan\n';
+
+            teacherData.forEach((item, index) => {
+                csvContent += `${index + 1},"${item.name}","${item.school}","${item.district}"\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `Data_Guru_PAI_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Show success message
+            const btn = this;
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '✅ Data Berhasil Diexport!';
+            btn.disabled = true;
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }, 2000);
+        });
+
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${type === 'success' ? 'bg-green-100 text-green-800' :
+                type === 'error' ? 'bg-red-100 text-red-800' :
+                    'bg-blue-100 text-blue-800'
+                }`;
+            messageDiv.textContent = message;
+
+            document.body.appendChild(messageDiv);
+
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+        }
+
+        // Barcode Generation Functions
+        let currentBarcodeData = null;
+
+        function generateBarcode(teacherId) {
+            const teacher = teacherData.find(item => item.id === teacherId);
+            if (!teacher) return;
+
+            // Show modal
+            document.getElementById('barcodeModal').classList.remove('hidden');
+
+            // Update teacher info
+            document.getElementById('barcodeTeacherName').textContent = teacher.name;
+            document.getElementById('barcodeTeacherSchool').textContent = teacher.school;
+            document.getElementById('barcodeTeacherDistrict').textContent = teacher.district;
+
+            // Create barcode data
+            const barcodeData = {
+                name: teacher.name,
+                school: teacher.school,
+                district: teacher.district,
+                timestamp: new Date().toISOString()
+            };
+
+            currentBarcodeData = barcodeData;
+
+            // Generate QR code
+            const canvas = document.getElementById('barcodeCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // Clear and set canvas size first
+            canvas.width = 200;
+            canvas.height = 200;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Set white background
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            console.log('Generating QR code for:', teacher.name);
+            console.log('QR data:', JSON.stringify(barcodeData));
+
+            // Check if QRCode library is loaded
+            if (typeof QRCode === 'undefined') {
+                console.error('QRCode library not loaded');
+                createFallbackBarcode(ctx, teacher);
+                return;
+            }
+
+            try {
+                // Generate QR code with simpler options
+                QRCode.toCanvas(canvas, JSON.stringify(barcodeData), {
+                    width: 200,
+                    margin: 2,
+                    errorCorrectionLevel: 'M'
+                }, function (error) {
+                    if (error) {
+                        console.error('QR Code generation error:', error);
+                        createFallbackBarcode(ctx, teacher);
+                    } else {
+                        console.log('QR code generated successfully');
+                    }
+                });
+            } catch (e) {
+                console.error('QR Code generation exception:', e);
+                createFallbackBarcode(ctx, teacher);
+            }
+        }
+
+        function createFallbackBarcode(ctx, teacher) {
+            // Create a simple visual barcode as fallback
+            ctx.fillStyle = '#f3f4f6';
+            ctx.fillRect(0, 0, 200, 200);
+
+            // Draw border
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(5, 5, 190, 190);
+
+            // Draw simple pattern
+            ctx.fillStyle = '#000000';
+            for (let i = 0; i < 10; i++) {
+                for (let j = 0; j < 10; j++) {
+                    if ((i + j) % 2 === 0) {
+                        ctx.fillRect(20 + i * 16, 20 + j * 16, 8, 8);
+                    }
+                }
+            }
+
+            // Add text
+            ctx.fillStyle = '#374151';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('BARCODE KEHADIRAN', 100, 180);
+            ctx.font = '10px Arial';
+            ctx.fillText(teacher.name.substring(0, 20), 100, 195);
+
+            showMessage('⚠️ QR Code library error, menggunakan barcode alternatif', 'error');
+        }
+
+        // Modal close functionality
+        document.getElementById('closeBarcodeModal').addEventListener('click', function () {
+            document.getElementById('barcodeModal').classList.add('hidden');
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('barcodeModal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
+            }
+        });
+
+        // Download barcode
+        document.getElementById('downloadBarcode').addEventListener('click', function () {
+            if (!currentBarcodeData) return;
+
+            const canvas = document.getElementById('barcodeCanvas');
+            const link = document.createElement('a');
+            link.download = `Barcode_${currentBarcodeData.name.replace(/[^a-zA-Z0-9]/g, '_')}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+
+            showMessage('✅ Barcode berhasil didownload!', 'success');
+        });
+
+        // Print barcode
+        document.getElementById('printBarcode').addEventListener('click', function () {
+            if (!currentBarcodeData) return;
+
+            const canvas = document.getElementById('barcodeCanvas');
+            const printWindow = window.open('', '_blank');
+            const img = canvas.toDataURL();
+
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Barcode Kehadiran - ${currentBarcodeData.name}</title>
+                    <style>
+                        body { 
+                            font-family: Arial, sans-serif; 
+                            text-align: center; 
+                            padding: 20px;
+                            margin: 0;
+                        }
+                        .header {
+                            margin-bottom: 20px;
+                        }
+                        .teacher-info {
+                            background: #f0fdf4;
+                            padding: 15px;
+                            border-radius: 8px;
+                            margin: 20px 0;
+                            border: 2px solid #10b981;
+                        }
+                        .barcode-container {
+                            margin: 20px 0;
+                        }
+                        .footer {
+                            margin-top: 20px;
+                            font-size: 12px;
+                            color: #666;
+                        }
+                        @media print {
+                            body { margin: 0; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h2>📚 BARCODE KEHADIRAN KKG PAI</h2>
+                        <p><strong>Pengawas: Dewi Yuliani, S.Ag, MA</strong></p>
+                    </div>
+                    
+                    <div class="teacher-info">
+                        <h3>${currentBarcodeData.name}</h3>
+                        <p><strong>Sekolah:</strong> ${currentBarcodeData.school}</p>
+                        <p><strong>Kecamatan:</strong> ${currentBarcodeData.district}</p>
+                    </div>
+                    
+                    <div class="barcode-container">
+                        <img src="${img}" alt="Barcode" style="max-width: 200px; height: auto;">
+                    </div>
+                    
+                    <div class="footer">
+                        <p>Scan barcode ini untuk mencatat kehadiran secara otomatis</p>
+                        <p>Dibuat pada: ${new Date().toLocaleDateString('id-ID', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            })}</p>
+                    </div>
+                </body>
+                </html>
+            `);
+
+            printWindow.document.close();
+            printWindow.focus();
+
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 250);
+
+            showMessage('✅ Barcode siap untuk dicetak!', 'success');
+        });
+
+        // Sample teacher data for testing
+        function initializeSampleData() {
+            if (teacherData.length === 0) {
+                const sampleTeachers = [
+                    { id: 1, name: "Ahmad Budi Santoso, S.Pd.I", school: "SDN 01 Sukamaju", district: "Sukamaju" },
+                    { id: 2, name: "Siti Nurhaliza, S.Ag", school: "SDN 02 Sukamaju", district: "Sukamaju" },
+                    { id: 3, name: "Muhammad Rizki, S.Pd.I", school: "SDN 03 Makmur", district: "Makmur" },
+                    { id: 4, name: "Fatimah Zahra, S.Ag", school: "SDN 01 Sejahtera", district: "Sejahtera" },
+                    { id: 5, name: "Abdul Rahman, S.Pd.I", school: "SDN 02 Sejahtera", district: "Sejahtera" }
+                ];
+
+                teacherData = sampleTeachers;
+                updateTeacherList();
+            }
+        }
+
+        // Initialize
+        updateAttendanceList();
+        updateTeacherList();
+        initializeSampleData();
+    </script>
+    <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'98bbdfa226ef5fd8',t:'MTc1OTk5MTg5MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
+</body>
+
+</html>
