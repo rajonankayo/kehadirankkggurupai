@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,21 +12,18 @@
         body {
             box-sizing: border-box;
         }
-
         .scanner-container {
             position: relative;
             width: 100%;
             max-width: 400px;
             margin: 0 auto;
         }
-
         #video {
             width: 100%;
             height: 300px;
             object-fit: cover;
             border-radius: 12px;
         }
-
         .scanner-overlay {
             position: absolute;
             top: 50%;
@@ -39,25 +35,15 @@
             border-radius: 12px;
             box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.3);
         }
-
         .pulse {
             animation: pulse 2s infinite;
         }
-
         @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.5;
-            }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
     </style>
 </head>
-
 <body class="bg-gradient-to-br from-emerald-50 to-blue-50 min-h-full">
     <div class="container mx-auto px-4 py-6">
         <!-- Header -->
@@ -75,16 +61,13 @@
         <!-- Tab Navigation -->
         <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
             <div class="flex flex-wrap gap-2 mb-6">
-                <button id="attendanceTab"
-                    class="tab-btn active px-4 py-2 rounded-lg font-semibold transition-colors bg-emerald-600 text-white">
+                <button id="attendanceTab" class="tab-btn active px-4 py-2 rounded-lg font-semibold transition-colors bg-emerald-600 text-white">
                     📋 Kehadiran
                 </button>
-                <button id="teacherDataTab"
-                    class="tab-btn px-4 py-2 rounded-lg font-semibold transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300 hidden">
+                <button id="teacherDataTab" class="tab-btn px-4 py-2 rounded-lg font-semibold transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300 hidden">
                     👥 Data Guru PAI
                 </button>
-                <button id="adminTab"
-                    class="tab-btn px-4 py-2 rounded-lg font-semibold transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300">
+                <button id="adminTab" class="tab-btn px-4 py-2 rounded-lg font-semibold transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300">
                     🔐 Admin Login
                 </button>
             </div>
@@ -95,17 +78,16 @@
             <!-- Scanner Section -->
             <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
                 <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">📱 Scan QR Code Kehadiran</h2>
-
+            
                 <div class="scanner-container mb-4">
                     <video id="video" autoplay muted playsinline style="display: none;"></video>
                     <canvas id="canvas" style="display: none;"></canvas>
                     <div class="scanner-overlay pulse" id="scannerOverlay" style="display: none;"></div>
-
+                    
                     <div id="scannerPlaceholder" class="bg-gray-100 rounded-xl h-72 flex items-center justify-center">
                         <div class="text-center">
                             <div class="text-6xl mb-4">📷</div>
-                            <button id="startScanBtn"
-                                class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                            <button id="startScanBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                                 Mulai Scan QR Code
                             </button>
                         </div>
@@ -113,37 +95,31 @@
                 </div>
 
                 <div id="scanResult" class="hidden p-4 rounded-lg mb-4"></div>
-
+                
                 <!-- Debug Info -->
                 <div id="debugInfo" class="text-xs text-gray-500 text-center mb-4 hidden">
                     <p>Debug: <span id="debugText">Menunggu...</span></p>
                     <p>Library jsQR: <span id="jsqrStatus">Checking...</span></p>
                     <p>Video: <span id="videoStatus">Not started</span></p>
                 </div>
-
+                
                 <div class="text-center">
-                    <button id="stopScanBtn"
-                        class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors hidden">
+                    <button id="stopScanBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors hidden">
                         Berhenti Scan
                     </button>
-                    <button id="toggleDebugBtn"
-                        class="ml-2 bg-gray-400 hover:bg-gray-500 text-white px-3 py-2 rounded-lg text-sm transition-colors">
+                    <button id="toggleDebugBtn" class="ml-2 bg-gray-400 hover:bg-gray-500 text-white px-3 py-2 rounded-lg text-sm transition-colors">
                         🔍 Debug
                     </button>
                 </div>
             </div>
-
-
 
             <!-- Manual Entry -->
             <div id="manualEntrySection" class="bg-white rounded-xl shadow-lg p-6 mb-6 hidden">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-semibold text-gray-800">✏️ Input Data Kehadiran</h3>
                     <div class="flex items-center gap-3">
-                        <span class="text-sm text-emerald-600 font-medium">👤 Admin: <span
-                                id="loggedInUser"></span></span>
-                        <button id="logoutBtn"
-                            class="text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg transition-colors">
+                        <span class="text-sm text-emerald-600 font-medium">👤 Admin: <span id="loggedInUser"></span></span>
+                        <button id="logoutBtn" class="text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg transition-colors">
                             🚪 Logout
                         </button>
                     </div>
@@ -154,8 +130,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 <span class="text-red-500">*</span> Nama Lengkap
                             </label>
-                            <select id="manualName" required
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
+                            <select id="manualName" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
                                 <option value="">Pilih nama guru...</option>
                             </select>
                             <p class="text-xs text-gray-500 mt-1">Pilih nama dari database guru PAI</p>
@@ -164,34 +139,27 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 <span class="text-red-500">*</span> Nama Sekolah
                             </label>
-                            <input type="text" id="manualSchool" required readonly
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
-                                placeholder="Akan terisi otomatis">
+                            <input type="text" id="manualSchool" required readonly class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600" placeholder="Akan terisi otomatis">
                             <p class="text-xs text-gray-500 mt-1">Terisi otomatis setelah memilih nama</p>
                         </div>
                     </div>
-
+                    
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 <span class="text-red-500">*</span> Kecamatan
                             </label>
-                            <input type="text" id="manualDistrict" required readonly
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
-                                placeholder="Akan terisi otomatis">
+                            <input type="text" id="manualDistrict" required readonly class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600" placeholder="Akan terisi otomatis">
                             <p class="text-xs text-gray-500 mt-1">Terisi otomatis setelah memilih nama</p>
                         </div>
                     </div>
-
-
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 <span class="text-red-500">*</span> Status Kehadiran
                             </label>
-                            <select id="attendanceStatus" required
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
+                            <select id="attendanceStatus" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
                                 <option value="">Pilih status kehadiran</option>
                                 <option value="Hadir">✅ Hadir</option>
                                 <option value="Sakit">🤒 Sakit</option>
@@ -203,12 +171,10 @@
                     </div>
 
                     <div class="flex gap-3">
-                        <button type="submit"
-                            class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2">
+                        <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2">
                             <span>✅</span> Tambah Kehadiran
                         </button>
-                        <button type="button" id="clearFormBtn"
-                            class="px-6 bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-lg font-semibold transition-colors">
+                        <button type="button" id="clearFormBtn" class="px-6 bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-lg font-semibold transition-colors">
                             🗑️ Bersihkan
                         </button>
                     </div>
@@ -229,7 +195,7 @@
                         </div>
                     </div>
                 </div>
-
+                
                 <div class="overflow-x-auto">
                     <table class="w-full">
                         <thead>
@@ -247,7 +213,7 @@
                             <!-- Attendance records will be added here -->
                         </tbody>
                     </table>
-
+                    
                     <div id="emptyState" class="text-center py-8 text-gray-500">
                         <div class="text-4xl mb-2">📝</div>
                         <p>Belum ada peserta yang hadir</p>
@@ -258,8 +224,7 @@
 
             <!-- Export Button -->
             <div class="mt-6 text-center">
-                <button id="exportBtn"
-                    class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                <button id="exportBtn" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                     📊 Export Daftar Hadir
                 </button>
             </div>
@@ -270,26 +235,20 @@
             <!-- Admin Login -->
             <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">🔐 Login Admin</h3>
-                <p class="text-sm text-gray-600 mb-4">Masuk sebagai admin untuk mengakses fitur input manual kehadiran
-                    dan manajemen data guru</p>
-
+                <p class="text-sm text-gray-600 mb-4">Masuk sebagai admin untuk mengakses fitur input manual kehadiran dan manajemen data guru</p>
+                
                 <div id="loginSection">
                     <form id="loginForm" class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Username Admin</label>
-                            <input type="text" id="adminUsername" required
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-                                placeholder="Masukkan username admin">
+                            <input type="text" id="adminUsername" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" placeholder="Masukkan username admin">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                            <input type="password" id="adminPassword" required
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-                                placeholder="Masukkan password">
+                            <input type="password" id="adminPassword" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" placeholder="Masukkan password">
                         </div>
                         <div class="flex gap-3">
-                            <button type="submit"
-                                class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                            <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold transition-colors">
                                 🔓 Login Admin
                             </button>
                         </div>
@@ -301,39 +260,34 @@
                     <div class="flex justify-between items-center mb-6">
                         <div>
                             <h4 class="text-lg font-semibold text-gray-800">👋 Selamat Datang, Admin!</h4>
-                            <p class="text-sm text-emerald-600 font-medium">Login sebagai: <span
-                                    id="loggedInUserDisplay"></span></p>
+                            <p class="text-sm text-emerald-600 font-medium">Login sebagai: <span id="loggedInUserDisplay"></span></p>
                         </div>
-                        <button id="logoutBtnMain"
-                            class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+                        <button id="logoutBtnMain" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
                             🚪 Logout
                         </button>
                     </div>
-
+                    
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="bg-emerald-50 p-4 rounded-lg">
                             <h5 class="font-semibold text-emerald-800 mb-2">📋 Fitur Kehadiran</h5>
                             <p class="text-sm text-emerald-700 mb-3">Kelola data kehadiran peserta KKG PAI</p>
-                            <button onclick="switchTab('attendance')"
-                                class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+                            <button onclick="switchTab('attendance')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
                                 Buka Kehadiran
                             </button>
                         </div>
-
+                        
                         <div class="bg-blue-50 p-4 rounded-lg">
                             <h5 class="font-semibold text-blue-800 mb-2">👥 Data Guru PAI</h5>
                             <p class="text-sm text-blue-700 mb-3">Kelola database guru PAI</p>
-                            <button onclick="switchTab('teacherData')"
-                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+                            <button onclick="switchTab('teacherData')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
                                 Buka Data Guru
                             </button>
                         </div>
-
+                        
                         <div class="bg-purple-50 p-4 rounded-lg">
                             <h5 class="font-semibold text-purple-800 mb-2">📊 Google Sheets</h5>
                             <p class="text-sm text-purple-700 mb-3">Sinkronisasi data ke spreadsheet</p>
-                            <button onclick="openSheetsModal()"
-                                class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+                            <button onclick="openSheetsModal()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
                                 Setup Sheets
                             </button>
                         </div>
@@ -359,12 +313,11 @@
             <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-semibold text-gray-800">👥 Data Guru PAI</h3>
-                    <button id="addTeacherBtn"
-                        class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+                    <button id="addTeacherBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
                         ➕ Tambah Guru
                     </button>
                 </div>
-
+                
                 <!-- Teacher Form -->
                 <div id="teacherFormSection" class="hidden mb-6 p-4 bg-gray-50 rounded-lg">
                     <h4 class="text-md font-semibold text-gray-800 mb-4">📝 Form Data Guru</h4>
@@ -374,38 +327,30 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
                                     <span class="text-red-500">*</span> Nama Lengkap
                                 </label>
-                                <input type="text" id="teacherName" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-                                    placeholder="Contoh: Ahmad Budi Santoso, S.Pd.I">
+                                <input type="text" id="teacherName" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" placeholder="Contoh: Ahmad Budi Santoso, S.Pd.I">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
                                     <span class="text-red-500">*</span> Nama Sekolah
                                 </label>
-                                <input type="text" id="teacherSchool" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-                                    placeholder="Contoh: SDN 01 Sukamaju">
+                                <input type="text" id="teacherSchool" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" placeholder="Contoh: SDN 01 Sukamaju">
                             </div>
                         </div>
-
+                        
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
                                     <span class="text-red-500">*</span> Kecamatan
                                 </label>
-                                <input type="text" id="teacherDistrict" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-                                    placeholder="Contoh: Sukamaju">
+                                <input type="text" id="teacherDistrict" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" placeholder="Contoh: Sukamaju">
                             </div>
                         </div>
 
                         <div class="flex gap-3">
-                            <button type="submit"
-                                class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                                 ✅ Simpan Data
                             </button>
-                            <button type="button" id="cancelTeacherBtn"
-                                class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                            <button type="button" id="cancelTeacherBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                                 ❌ Batal
                             </button>
                         </div>
@@ -428,7 +373,7 @@
                             <!-- Teacher records will be added here -->
                         </tbody>
                     </table>
-
+                    
                     <div id="teacherEmptyState" class="text-center py-8 text-gray-500">
                         <div class="text-4xl mb-2">👥</div>
                         <p>Belum ada data guru PAI</p>
@@ -438,8 +383,7 @@
 
                 <!-- Teacher Export Button -->
                 <div class="mt-6 text-center">
-                    <button id="exportTeacherBtn"
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                    <button id="exportTeacherBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                         📊 Export Data Guru
                     </button>
                 </div>
@@ -447,8 +391,7 @@
         </div>
 
         <!-- Google Sheets Modal -->
-        <div id="sheetsModal"
-            class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div id="sheetsModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
             <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-full overflow-y-auto">
                 <div class="p-6">
                     <div class="flex justify-between items-center mb-4">
@@ -457,7 +400,7 @@
                             ✕
                         </button>
                     </div>
-
+                    
                     <div class="space-y-6">
                         <!-- Status Section -->
                         <div id="sheetsStatus" class="p-4 rounded-lg bg-gray-50">
@@ -486,8 +429,7 @@
                                     <br>• "Data Kehadiran KKG PAI"
                                     <br>• "Data Guru PAI"
                                 </li>
-                                <li><strong>Set Sharing</strong> → Klik "Share" → Pilih "Anyone with the link can edit"
-                                </li>
+                                <li><strong>Set Sharing</strong> → Klik "Share" → Pilih "Anyone with the link can edit"</li>
                                 <li><strong>Copy URL</strong> → Copy link dari address bar browser</li>
                                 <li><strong>Paste URL</strong> → Masukkan ke form di bawah</li>
                                 <li><strong>Aktifkan Auto-Sync</strong> → Centang checkbox dan klik Simpan</li>
@@ -500,39 +442,30 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
                                     📋 URL Google Sheets - Data Kehadiran
                                 </label>
-                                <input type="url" id="attendanceSheetUrl"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
-                                    placeholder="https://docs.google.com/spreadsheets/d/...">
-                                <p class="text-xs text-gray-500 mt-1">Paste URL Google Sheets untuk menyimpan data
-                                    kehadiran</p>
+                                <input type="url" id="attendanceSheetUrl" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors" placeholder="https://docs.google.com/spreadsheets/d/...">
+                                <p class="text-xs text-gray-500 mt-1">Paste URL Google Sheets untuk menyimpan data kehadiran</p>
                             </div>
-
+                            
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
                                     👥 URL Google Sheets - Data Guru PAI
                                 </label>
-                                <input type="url" id="teacherSheetUrl"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
-                                    placeholder="https://docs.google.com/spreadsheets/d/...">
-                                <p class="text-xs text-gray-500 mt-1">Paste URL Google Sheets untuk menyimpan data guru
-                                    PAI</p>
+                                <input type="url" id="teacherSheetUrl" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors" placeholder="https://docs.google.com/spreadsheets/d/...">
+                                <p class="text-xs text-gray-500 mt-1">Paste URL Google Sheets untuk menyimpan data guru PAI</p>
                             </div>
 
                             <div class="flex items-center gap-3">
-                                <input type="checkbox" id="enableAutoSync"
-                                    class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
+                                <input type="checkbox" id="enableAutoSync" class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
                                 <label for="enableAutoSync" class="text-sm font-medium text-gray-700">
                                     🔄 Aktifkan sinkronisasi otomatis ke Google Sheets
                                 </label>
                             </div>
 
                             <div class="flex gap-3">
-                                <button type="submit"
-                                    class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                                <button type="submit" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold transition-colors">
                                     💾 Simpan Konfigurasi
                                 </button>
-                                <button type="button" id="testSheetsBtn"
-                                    class="px-6 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                                <button type="button" id="testSheetsBtn" class="px-6 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition-colors">
                                     🧪 Test Koneksi
                                 </button>
                             </div>
@@ -542,12 +475,10 @@
                         <div class="border-t pt-4">
                             <h4 class="font-semibold text-gray-800 mb-3">⚡ Aksi Cepat</h4>
                             <div class="grid grid-cols-2 gap-3">
-                                <button onclick="syncAllToSheets()"
-                                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+                                <button onclick="syncAllToSheets()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
                                     📤 Sync Semua Data
                                 </button>
-                                <button onclick="openSheetsInNewTab()"
-                                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+                                <button onclick="openSheetsInNewTab()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
                                     🔗 Buka Google Sheets
                                 </button>
                             </div>
@@ -558,24 +489,20 @@
         </div>
 
         <!-- Sync Notification -->
-        <div id="syncNotification"
-            class="fixed bottom-4 right-4 bg-white rounded-lg shadow-lg border-l-4 border-purple-500 p-4 z-50 hidden max-w-sm">
+        <div id="syncNotification" class="fixed bottom-4 right-4 bg-white rounded-lg shadow-lg border-l-4 border-purple-500 p-4 z-50 hidden max-w-sm">
             <div class="flex items-start gap-3">
                 <div class="text-purple-500 text-xl">📊</div>
                 <div class="flex-1">
                     <h4 class="font-semibold text-gray-800 text-sm">Data Siap Disinkronkan!</h4>
                     <p id="syncNotificationText" class="text-xs text-gray-600 mb-2"></p>
                     <div class="flex gap-2">
-                        <button onclick="copySyncData()"
-                            class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-xs font-semibold transition-colors">
+                        <button onclick="copySyncData()" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-xs font-semibold transition-colors">
                             📋 Copy Data
                         </button>
-                        <button onclick="openSheetsInNewTab()"
-                            class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-semibold transition-colors">
+                        <button onclick="openSheetsInNewTab()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-semibold transition-colors">
                             🔗 Buka Sheet
                         </button>
-                        <button onclick="hideSyncNotification()"
-                            class="text-gray-500 hover:text-gray-700 px-2 py-1 text-xs">
+                        <button onclick="hideSyncNotification()" class="text-gray-500 hover:text-gray-700 px-2 py-1 text-xs">
                             ✕
                         </button>
                     </div>
@@ -584,8 +511,7 @@
         </div>
 
         <!-- Barcode Modal -->
-        <div id="barcodeModal"
-            class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div id="barcodeModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
             <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-full overflow-y-auto">
                 <div class="p-6">
                     <div class="flex justify-between items-center mb-4">
@@ -594,31 +520,28 @@
                             ✕
                         </button>
                     </div>
-
+                    
                     <div class="text-center mb-4">
                         <div id="teacherInfo" class="bg-emerald-50 p-4 rounded-lg mb-4">
                             <h4 id="barcodeTeacherName" class="font-semibold text-emerald-800"></h4>
                             <p id="barcodeTeacherSchool" class="text-sm text-emerald-600"></p>
                             <p id="barcodeTeacherDistrict" class="text-sm text-emerald-600"></p>
                         </div>
-
-                        <div id="barcodeContainer"
-                            class="bg-white p-4 rounded-lg border-2 border-gray-200 mb-4 flex justify-center">
+                        
+                        <div id="barcodeContainer" class="bg-white p-4 rounded-lg border-2 border-gray-200 mb-4 flex justify-center">
                             <canvas id="barcodeCanvas" style="max-width: 100%; height: auto;"></canvas>
                         </div>
-
+                        
                         <p class="text-xs text-gray-500 mb-4">
                             Scan QR Code ini dengan kamera HP untuk mencatat kehadiran secara otomatis
                         </p>
                     </div>
-
+                    
                     <div class="flex gap-3">
-                        <button id="downloadBarcode"
-                            class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                        <button id="downloadBarcode" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold transition-colors">
                             💾 Download QR Code
                         </button>
-                        <button id="printBarcode"
-                            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                        <button id="printBarcode" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition-colors">
                             🖨️ Print QR Code
                         </button>
                     </div>
@@ -709,58 +632,58 @@
         // Open sheets modal
         function openSheetsModal() {
             document.getElementById('sheetsModal').classList.remove('hidden');
-
+            
             // Populate form with current config
             document.getElementById('attendanceSheetUrl').value = sheetsConfig.attendanceSheetUrl;
             document.getElementById('teacherSheetUrl').value = sheetsConfig.teacherSheetUrl;
             document.getElementById('enableAutoSync').checked = sheetsConfig.autoSync;
-
+            
             updateSheetsStatus();
         }
 
         // Close sheets modal
-        document.getElementById('closeSheetsModal').addEventListener('click', function () {
+        document.getElementById('closeSheetsModal').addEventListener('click', function() {
             document.getElementById('sheetsModal').classList.add('hidden');
         });
 
         // Close modal when clicking outside
-        document.getElementById('sheetsModal').addEventListener('click', function (e) {
+        document.getElementById('sheetsModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 this.classList.add('hidden');
             }
         });
 
         // Sheets configuration form
-        document.getElementById('sheetsConfigForm').addEventListener('submit', function (e) {
+        document.getElementById('sheetsConfigForm').addEventListener('submit', function(e) {
             e.preventDefault();
-
+            
             const attendanceUrl = document.getElementById('attendanceSheetUrl').value.trim();
             const teacherUrl = document.getElementById('teacherSheetUrl').value.trim();
             const autoSync = document.getElementById('enableAutoSync').checked;
-
+            
             // Validate URLs
             if (attendanceUrl && !isValidGoogleSheetsUrl(attendanceUrl)) {
                 showMessage('❌ URL Google Sheets kehadiran tidak valid', 'error');
                 return;
             }
-
+            
             if (teacherUrl && !isValidGoogleSheetsUrl(teacherUrl)) {
                 showMessage('❌ URL Google Sheets data guru tidak valid', 'error');
                 return;
             }
-
+            
             // Save configuration
             sheetsConfig.attendanceSheetUrl = attendanceUrl;
             sheetsConfig.teacherSheetUrl = teacherUrl;
             sheetsConfig.autoSync = autoSync;
-
+            
             saveSheetsConfig();
-
+            
             // Close modal
             document.getElementById('sheetsModal').classList.add('hidden');
-
+            
             showMessage('✅ Konfigurasi Google Sheets berhasil disimpan!', 'success');
-
+            
             // If auto-sync is enabled, sync existing data
             if (autoSync && (attendanceUrl || teacherUrl)) {
                 setTimeout(() => {
@@ -781,17 +704,17 @@
         }
 
         // Test sheets connection
-        document.getElementById('testSheetsBtn').addEventListener('click', function () {
+        document.getElementById('testSheetsBtn').addEventListener('click', function() {
             const attendanceUrl = document.getElementById('attendanceSheetUrl').value.trim();
             const teacherUrl = document.getElementById('teacherSheetUrl').value.trim();
-
+            
             if (!attendanceUrl && !teacherUrl) {
                 showMessage('❌ Masukkan minimal satu URL Google Sheets untuk test', 'error');
                 return;
             }
-
+            
             let testResults = [];
-
+            
             if (attendanceUrl) {
                 if (isValidGoogleSheetsUrl(attendanceUrl)) {
                     testResults.push('✅ URL Kehadiran: Valid');
@@ -799,7 +722,7 @@
                     testResults.push('❌ URL Kehadiran: Tidak valid');
                 }
             }
-
+            
             if (teacherUrl) {
                 if (isValidGoogleSheetsUrl(teacherUrl)) {
                     testResults.push('✅ URL Data Guru: Valid');
@@ -807,7 +730,7 @@
                     testResults.push('❌ URL Data Guru: Tidak valid');
                 }
             }
-
+            
             showMessage(testResults.join('\n'), testResults.every(r => r.includes('✅')) ? 'success' : 'error');
         });
 
@@ -817,9 +740,9 @@
                 showMessage('❌ Belum ada Google Sheets yang dikonfigurasi', 'error');
                 return;
             }
-
+            
             let syncData = '';
-
+            
             // Prepare attendance data
             if (sheetsConfig.attendanceSheetUrl && attendanceData.length > 0) {
                 syncData += 'DATA KEHADIRAN KKG PAI\n';
@@ -827,26 +750,26 @@
                 syncData += `Tanggal: ${new Date().toLocaleDateString('id-ID')}\n`;
                 syncData += `Total Peserta: ${attendanceData.length} orang\n\n`;
                 syncData += 'No\tNama Lengkap\tSekolah\tKecamatan\tStatus\tWaktu\tMetode\n';
-
+                
                 attendanceData.forEach((item, index) => {
                     syncData += `${index + 1}\t${item.name}\t${item.school}\t${item.district || '-'}\t${item.status}\t${item.time}\t${item.method}\n`;
                 });
-
+                
                 syncData += '\n\n';
             }
-
+            
             // Prepare teacher data
             if (sheetsConfig.teacherSheetUrl && teacherData.length > 0) {
                 syncData += 'DATA GURU PAI\n';
                 syncData += `Pengawas: Dewi Yuliani, S.Ag, MA\n`;
                 syncData += `Total Guru: ${teacherData.length} orang\n\n`;
                 syncData += 'No\tNama Lengkap\tSekolah\tKecamatan\n';
-
+                
                 teacherData.forEach((item, index) => {
                     syncData += `${index + 1}\t${item.name}\t${item.school}\t${item.district}\n`;
                 });
             }
-
+            
             if (syncData) {
                 pendingSyncData = syncData;
                 showSyncNotification('Semua data siap disinkronkan ke Google Sheets');
@@ -858,11 +781,11 @@
         // Auto-sync when new data is added
         function autoSyncToSheets(type, data) {
             if (!sheetsConfig.autoSync) return;
-
+            
             let syncData = '';
             const currentDate = new Date().toLocaleDateString('id-ID');
             const currentTime = new Date().toLocaleTimeString('id-ID');
-
+            
             if (type === 'attendance' && sheetsConfig.attendanceSheetUrl) {
                 syncData = `${data.name}\t${data.school}\t${data.district || '-'}\t${data.status}\t${data.time}\t${data.method}\t${currentDate} ${currentTime}`;
                 pendingSyncData = syncData;
@@ -878,10 +801,10 @@
         function showSyncNotification(message) {
             const notification = document.getElementById('syncNotification');
             const text = document.getElementById('syncNotificationText');
-
+            
             text.textContent = message;
             notification.classList.remove('hidden');
-
+            
             // Auto-hide after 10 seconds
             setTimeout(() => {
                 hideSyncNotification();
@@ -899,7 +822,7 @@
                 showMessage('❌ Tidak ada data untuk dicopy', 'error');
                 return;
             }
-
+            
             navigator.clipboard.writeText(pendingSyncData).then(() => {
                 showMessage('✅ Data berhasil dicopy! Paste ke Google Sheets', 'success');
                 hideSyncNotification();
@@ -911,7 +834,7 @@
                 textArea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textArea);
-
+                
                 showMessage('✅ Data berhasil dicopy! Paste ke Google Sheets', 'success');
                 hideSyncNotification();
             });
@@ -920,37 +843,37 @@
         // Open Google Sheets in new tab
         function openSheetsInNewTab() {
             const urls = [];
-
+            
             if (sheetsConfig.attendanceSheetUrl) {
                 urls.push(sheetsConfig.attendanceSheetUrl);
             }
-
+            
             if (sheetsConfig.teacherSheetUrl) {
                 urls.push(sheetsConfig.teacherSheetUrl);
             }
-
+            
             if (urls.length === 0) {
                 showMessage('❌ Belum ada Google Sheets yang dikonfigurasi', 'error');
                 return;
             }
-
+            
             urls.forEach(url => {
                 window.open(url, '_blank', 'noopener,noreferrer');
             });
-
+            
             showMessage(`✅ Membuka ${urls.length} Google Sheets di tab baru`, 'success');
         }
 
         // Tab functionality
-        document.getElementById('attendanceTab').addEventListener('click', function () {
+        document.getElementById('attendanceTab').addEventListener('click', function() {
             switchTab('attendance');
         });
 
-        document.getElementById('teacherDataTab').addEventListener('click', function () {
+        document.getElementById('teacherDataTab').addEventListener('click', function() {
             switchTab('teacherData');
         });
 
-        document.getElementById('adminTab').addEventListener('click', function () {
+        document.getElementById('adminTab').addEventListener('click', function() {
             switchTab('admin');
         });
 
@@ -994,9 +917,9 @@
 
         startScanBtn.addEventListener('click', startScanner);
         stopScanBtn.addEventListener('click', stopScanner);
-
+        
         // Debug toggle
-        document.getElementById('toggleDebugBtn').addEventListener('click', function () {
+        document.getElementById('toggleDebugBtn').addEventListener('click', function() {
             const debugInfo = document.getElementById('debugInfo');
             if (debugInfo.classList.contains('hidden')) {
                 debugInfo.classList.remove('hidden');
@@ -1007,7 +930,7 @@
                 this.textContent = '🔍 Debug';
             }
         });
-
+        
         function updateDebugInfo() {
             document.getElementById('jsqrStatus').textContent = typeof jsQR !== 'undefined' ? '✅ Loaded' : '❌ Not loaded';
             document.getElementById('videoStatus').textContent = video.videoWidth > 0 ? `✅ ${video.videoWidth}x${video.videoHeight}` : '❌ No video';
@@ -1015,66 +938,66 @@
         }
 
         // Login functionality
-        document.getElementById('loginForm').addEventListener('submit', function (e) {
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
-
+            
             const username = document.getElementById('adminUsername').value.trim();
             const password = document.getElementById('adminPassword').value.trim();
             const loginError = document.getElementById('loginError');
-
+            
             if (adminCredentials[username] && adminCredentials[username] === password) {
                 isAdminLoggedIn = true;
                 currentAdmin = username;
-
+                
                 // Show admin dashboard, hide login form
                 document.getElementById('loginSection').classList.add('hidden');
                 document.getElementById('adminDashboard').classList.remove('hidden');
                 document.getElementById('loggedInUserDisplay').textContent = username;
-
+                
                 // Show manual entry section in attendance tab
                 document.getElementById('manualEntrySection').classList.remove('hidden');
                 document.getElementById('loggedInUser').textContent = username;
-
+                
                 // Show teacher data tab after login
                 document.getElementById('teacherDataTab').classList.remove('hidden');
-
+                
                 // Clear login form
                 document.getElementById('adminUsername').value = '';
                 document.getElementById('adminPassword').value = '';
                 loginError.classList.add('hidden');
-
+                
                 // Show success message
                 showLoginMessage('✅ Login berhasil! Selamat datang, ' + username, 'success');
             } else {
                 loginError.textContent = '❌ Username atau password salah. Silakan coba lagi.';
                 loginError.classList.remove('hidden');
-
+                
                 // Clear password field
                 document.getElementById('adminPassword').value = '';
             }
         });
 
         // Logout functionality
-        document.getElementById('logoutBtn').addEventListener('click', function () {
+        document.getElementById('logoutBtn').addEventListener('click', function() {
             performLogout();
         });
 
-        document.getElementById('logoutBtnMain').addEventListener('click', function () {
+        document.getElementById('logoutBtnMain').addEventListener('click', function() {
             performLogout();
         });
 
         function performLogout() {
             isAdminLoggedIn = false;
             currentAdmin = '';
-
+            
             // Show login section, hide admin dashboard and manual entry
             document.getElementById('loginSection').classList.remove('hidden');
             document.getElementById('adminDashboard').classList.add('hidden');
             document.getElementById('manualEntrySection').classList.add('hidden');
-
+            
             // Hide teacher data tab after logout
             document.getElementById('teacherDataTab').classList.add('hidden');
-
+            
             // Switch to attendance tab if currently on teacher data tab
             if (!document.getElementById('attendanceContent').classList.contains('hidden')) {
                 // Already on attendance tab, do nothing
@@ -1082,23 +1005,24 @@
                 // Currently on teacher data tab, switch to attendance
                 switchTab('attendance');
             }
-
+            
             // Clear any form data
             clearForm();
-
+            
             showLoginMessage('👋 Logout berhasil. Terima kasih!', 'info');
         }
 
         function showLoginMessage(message, type) {
             const messageDiv = document.createElement('div');
-            messageDiv.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${type === 'success' ? 'bg-green-100 text-green-800' :
-                type === 'error' ? 'bg-red-100 text-red-800' :
-                    'bg-blue-100 text-blue-800'
-                }`;
+            messageDiv.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-100 text-green-800' : 
+                type === 'error' ? 'bg-red-100 text-red-800' : 
+                'bg-blue-100 text-blue-800'
+            }`;
             messageDiv.textContent = message;
-
+            
             document.body.appendChild(messageDiv);
-
+            
             setTimeout(() => {
                 messageDiv.remove();
             }, 3000);
@@ -1122,42 +1046,42 @@
                 // Multiple fallback strategies for mobile compatibility
                 const cameraConfigs = [
                     // Try rear camera first (best for scanning)
-                    {
-                        video: {
+                    { 
+                        video: { 
                             facingMode: { exact: 'environment' },
                             width: { ideal: 1280 },
                             height: { ideal: 720 }
-                        }
+                        } 
                     },
                     // Fallback to any rear camera
-                    {
-                        video: {
+                    { 
+                        video: { 
                             facingMode: 'environment',
                             width: { ideal: 640 },
                             height: { ideal: 480 }
-                        }
+                        } 
                     },
                     // Try front camera
-                    {
-                        video: {
+                    { 
+                        video: { 
                             facingMode: 'user',
                             width: { ideal: 640 },
                             height: { ideal: 480 }
-                        }
+                        } 
                     },
                     // Basic video without specific facing mode
-                    {
-                        video: {
+                    { 
+                        video: { 
                             width: { ideal: 640 },
                             height: { ideal: 480 }
-                        }
+                        } 
                     },
                     // Minimal constraints as last resort
                     { video: true }
                 ];
 
                 let cameraError = null;
-
+                
                 for (let i = 0; i < cameraConfigs.length; i++) {
                     try {
                         console.log(`Trying camera config ${i + 1}:`, cameraConfigs[i]);
@@ -1167,7 +1091,7 @@
                     } catch (err) {
                         console.log(`Camera config ${i + 1} failed:`, err.name, err.message);
                         cameraError = err;
-
+                        
                         // If this is the last config, throw the error
                         if (i === cameraConfigs.length - 1) {
                             throw err;
@@ -1178,17 +1102,17 @@
                 if (!stream) {
                     throw new Error('Tidak dapat mengakses kamera dengan konfigurasi apapun');
                 }
-
+                
                 video.srcObject = stream;
-
+                
                 // Enhanced video ready detection
                 await new Promise((resolve, reject) => {
                     let attempts = 0;
                     const maxAttempts = 10;
-
+                    
                     const checkVideo = () => {
                         attempts++;
-
+                        
                         if (video.readyState >= 2) { // HAVE_CURRENT_DATA
                             resolve();
                         } else if (attempts >= maxAttempts) {
@@ -1197,7 +1121,7 @@
                             setTimeout(checkVideo, 200);
                         }
                     };
-
+                    
                     video.onloadedmetadata = () => {
                         video.play()
                             .then(() => {
@@ -1206,24 +1130,24 @@
                             })
                             .catch(reject);
                     };
-
+                    
                     video.onerror = reject;
-
+                    
                     // Start checking immediately in case metadata is already loaded
                     setTimeout(checkVideo, 100);
                 });
-
+                
                 // Show camera view
                 scannerPlaceholder.style.display = 'none';
                 video.style.display = 'block';
                 scannerOverlay.style.display = 'block';
                 stopScanBtn.classList.remove('hidden');
-
+                
                 scanning = true;
-
+                
                 // Show success message
                 showScanResult('✅ Kamera berhasil diakses! Arahkan ke QR Code untuk scan.', 'success');
-
+                
                 // Start scanning after ensuring video is stable
                 setTimeout(() => {
                     if (scanning && video.videoWidth > 0 && video.videoHeight > 0) {
@@ -1236,14 +1160,14 @@
                         }, 1000);
                     }
                 }, 800);
-
+                
             } catch (err) {
                 console.error('Camera error details:', {
                     name: err.name,
                     message: err.message,
                     stack: err.stack
                 });
-
+                
                 // Reset placeholder
                 scannerPlaceholder.innerHTML = `
                     <div class="text-center">
@@ -1253,12 +1177,12 @@
                         </button>
                     </div>
                 `;
-
+                
                 // Re-attach event listener
                 document.getElementById('startScanBtn').addEventListener('click', startScanner);
-
+                
                 let errorMessage = '❌ Tidak dapat mengakses kamera. ';
-
+                
                 if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
                     errorMessage += 'Izin kamera ditolak. Langkah-langkah:\n';
                     errorMessage += '1. Refresh halaman ini\n';
@@ -1275,7 +1199,7 @@
                 } else {
                     errorMessage += `Error: ${err.message}. Coba refresh halaman atau gunakan browser lain.`;
                 }
-
+                
                 showScanResult(errorMessage, 'error');
             }
         }
@@ -1285,7 +1209,7 @@
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
             }
-
+            
             video.style.display = 'none';
             scannerOverlay.style.display = 'none';
             scannerPlaceholder.style.display = 'flex';
@@ -1297,7 +1221,7 @@
             if (!scanning) {
                 return;
             }
-
+            
             if (!video.videoWidth || !video.videoHeight) {
                 updateDebugInfo();
                 setTimeout(() => scanBarcode(), 100);
@@ -1308,22 +1232,22 @@
                 // Set canvas size to match video
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
-
+                
                 // Draw current video frame to canvas
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
+                
                 // Get image data for QR code detection
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
+                
                 // Update debug info
                 updateDebugInfo();
-
+                
                 // Check if jsQR library is available
                 if (typeof jsQR !== 'undefined') {
                     const code = jsQR(imageData.data, imageData.width, imageData.height, {
                         inversionAttempts: "dontInvert",
                     });
-
+                    
                     if (code && code.data) {
                         console.log('QR Code detected:', code.data);
                         document.getElementById('debugText').textContent = `Found: ${code.data}`;
@@ -1334,7 +1258,7 @@
                     console.warn('jsQR library not available');
                     document.getElementById('debugText').textContent = 'jsQR library missing';
                 }
-
+                
                 // Continue scanning if no code detected
                 if (scanning) {
                     requestAnimationFrame(scanBarcode);
@@ -1356,49 +1280,49 @@
 
         function processBarcode(data) {
             console.log('Processing barcode data:', data);
-
+            
             // Stop scanning temporarily to prevent multiple scans
             const wasScanning = scanning;
             scanning = false;
-
+            
             const barcodeText = data.trim();
-
+            
             // Check if it's a PAI barcode format (PAI0001, PAI0002, etc.)
             const paiMatch = barcodeText.match(/^PAI(\d{4})$/);
-
+            
             if (paiMatch) {
                 const teacherId = parseInt(paiMatch[1]);
                 console.log('Found PAI format, teacher ID:', teacherId);
-
+                
                 const teacher = teacherData.find(t => t.id === teacherId);
-
+                
                 if (teacher) {
                     console.log('Teacher found:', teacher);
-
+                    
                     // Check if already recorded
-                    const existing = attendanceData.find(item =>
-                        item.name.toLowerCase() === teacher.name.toLowerCase() &&
+                    const existing = attendanceData.find(item => 
+                        item.name.toLowerCase() === teacher.name.toLowerCase() && 
                         item.school.toLowerCase() === teacher.school.toLowerCase()
                     );
-
+                    
                     if (existing) {
                         showScanResult(`⚠️ ${teacher.name} sudah tercatat hadir sebelumnya`, 'error');
                     } else {
                         addAttendance(
-                            teacher.name,
-                            teacher.school,
+                            teacher.name, 
+                            teacher.school, 
                             'QR Scan',
                             teacher.district,
                             '',
                             'Hadir'
                         );
                         showScanResult(`✅ Berhasil scan: ${teacher.name} dari ${teacher.school}`, 'success');
-
+                        
                         // Play success sound (if supported)
                         try {
                             const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
-                            audio.play().catch(() => { });
-                        } catch (e) { }
+                            audio.play().catch(() => {});
+                        } catch (e) {}
                     }
                 } else {
                     console.log('Teacher not found for ID:', teacherId);
@@ -1406,29 +1330,29 @@
                 }
             } else {
                 console.log('Not PAI format, trying name matching for:', barcodeText);
-
+                
                 // Try to find teacher by name (fallback for other barcode formats)
-                const foundTeacher = teacherData.find(t =>
+                const foundTeacher = teacherData.find(t => 
                     t.name.toLowerCase().includes(barcodeText.toLowerCase()) ||
                     barcodeText.toLowerCase().includes(t.name.toLowerCase()) ||
                     barcodeText === t.name
                 );
-
+                
                 if (foundTeacher) {
                     console.log('Teacher found by name:', foundTeacher);
-
+                    
                     // Check if already recorded
-                    const existing = attendanceData.find(item =>
-                        item.name.toLowerCase() === foundTeacher.name.toLowerCase() &&
+                    const existing = attendanceData.find(item => 
+                        item.name.toLowerCase() === foundTeacher.name.toLowerCase() && 
                         item.school.toLowerCase() === foundTeacher.school.toLowerCase()
                     );
-
+                    
                     if (existing) {
                         showScanResult(`⚠️ ${foundTeacher.name} sudah tercatat hadir sebelumnya`, 'error');
                     } else {
                         addAttendance(
-                            foundTeacher.name,
-                            foundTeacher.school,
+                            foundTeacher.name, 
+                            foundTeacher.school, 
                             'QR Scan',
                             foundTeacher.district,
                             '',
@@ -1441,7 +1365,7 @@
                     showScanResult(`❌ QR Code "${barcodeText}" tidak dikenali. Pastikan QR Code valid dan guru terdaftar.`, 'error');
                 }
             }
-
+            
             // Resume scanning after 3 seconds
             setTimeout(() => {
                 if (wasScanning && video.style.display !== 'none') {
@@ -1458,9 +1382,9 @@
         }
 
         // Name selection change handler
-        document.getElementById('manualName').addEventListener('change', function () {
+        document.getElementById('manualName').addEventListener('change', function() {
             const selectedTeacherId = this.value;
-
+            
             if (selectedTeacherId) {
                 const teacher = teacherData.find(t => t.id == selectedTeacherId);
                 if (teacher) {
@@ -1475,24 +1399,24 @@
         });
 
         // Manual form
-        document.getElementById('manualForm').addEventListener('submit', function (e) {
+        document.getElementById('manualForm').addEventListener('submit', function(e) {
             e.preventDefault();
-
+            
             // Check if admin is logged in
             if (!isAdminLoggedIn) {
                 alert('❌ Akses ditolak! Silakan login sebagai admin terlebih dahulu.');
                 return;
             }
-
+            
             const selectedTeacherId = document.getElementById('manualName').value;
             const status = document.getElementById('attendanceStatus').value.trim();
-
+            
             if (selectedTeacherId && status) {
                 const teacher = teacherData.find(t => t.id == selectedTeacherId);
                 if (teacher) {
                     addAttendance(teacher.name, teacher.school, 'Manual', teacher.district, '', status);
                     clearForm();
-
+                    
                     // Show success message
                     const form = this;
                     const submitBtn = form.querySelector('button[type="submit"]');
@@ -1519,11 +1443,11 @@
 
         function addAttendance(name, school, method, district = '', notes = '', status = 'Hadir') {
             // Check for duplicates
-            const existing = attendanceData.find(item =>
-                item.name.toLowerCase() === name.toLowerCase() &&
+            const existing = attendanceData.find(item => 
+                item.name.toLowerCase() === name.toLowerCase() && 
                 item.school.toLowerCase() === school.toLowerCase()
             );
-
+            
             if (existing) {
                 if (method === 'Barcode') {
                     showScanResult(`⚠️ ${name} sudah tercatat hadir sebelumnya`, 'error');
@@ -1543,10 +1467,10 @@
                 time: new Date().toLocaleTimeString('id-ID'),
                 method: method
             };
-
+            
             attendanceData.push(attendance);
             updateAttendanceList();
-
+            
             // Auto-sync to Google Sheets if enabled
             autoSyncToSheets('attendance', attendance);
         }
@@ -1555,7 +1479,7 @@
             const tbody = document.getElementById('attendanceList');
             const emptyState = document.getElementById('emptyState');
             const totalCount = document.getElementById('totalCount');
-
+            
             if (attendanceData.length === 0) {
                 tbody.innerHTML = '';
                 emptyState.style.display = 'block';
@@ -1566,21 +1490,21 @@
                 document.getElementById('alphaCount').textContent = '0';
                 return;
             }
-
+            
             emptyState.style.display = 'none';
             totalCount.textContent = attendanceData.length;
-
+            
             // Update status counts
             const hadirCount = attendanceData.filter(item => item.status === 'Hadir').length;
             const sakitCount = attendanceData.filter(item => item.status === 'Sakit').length;
             const izinCount = attendanceData.filter(item => item.status === 'Izin').length;
             const alphaCount = attendanceData.filter(item => item.status === 'Alpha').length;
-
+            
             document.getElementById('hadirCount').textContent = hadirCount;
             document.getElementById('sakitCount').textContent = sakitCount;
             document.getElementById('izinCount').textContent = izinCount;
             document.getElementById('alphaCount').textContent = alphaCount;
-
+            
             tbody.innerHTML = attendanceData.map((item, index) => `
                 <tr class="border-b border-gray-100 hover:bg-gray-50">
                     <td class="py-3 px-2 text-sm font-medium">${index + 1}</td>
@@ -1590,11 +1514,12 @@
                     <td class="py-3 px-2 text-gray-700 text-sm">${item.school}</td>
                     <td class="py-3 px-2 text-gray-700 text-sm">${item.district || '-'}</td>
                     <td class="py-3 px-2">
-                        <span class="px-2 py-1 text-xs rounded-full ${item.status === 'Hadir' ? 'bg-green-100 text-green-800' :
-                    item.status === 'Sakit' ? 'bg-yellow-100 text-yellow-800' :
-                        item.status === 'Izin' ? 'bg-blue-100 text-blue-800' :
+                        <span class="px-2 py-1 text-xs rounded-full ${
+                            item.status === 'Hadir' ? 'bg-green-100 text-green-800' :
+                            item.status === 'Sakit' ? 'bg-yellow-100 text-yellow-800' :
+                            item.status === 'Izin' ? 'bg-blue-100 text-blue-800' :
                             'bg-red-100 text-red-800'
-                }">
+                        }">
                             ${item.status === 'Hadir' ? '✅' : item.status === 'Sakit' ? '🤒' : item.status === 'Izin' ? '📝' : '❌'} ${item.status}
                         </span>
                     </td>
@@ -1609,7 +1534,7 @@
         }
 
         // Export functionality
-        document.getElementById('exportBtn').addEventListener('click', function () {
+        document.getElementById('exportBtn').addEventListener('click', function() {
             if (attendanceData.length === 0) {
                 alert('Tidak ada data kehadiran untuk diekspor');
                 return;
@@ -1624,11 +1549,11 @@
             csvContent += `Admin Export: ${currentAdmin || 'Sistem'}\n`;
             csvContent += `Total Peserta: ${attendanceData.length} orang\n\n`;
             csvContent += 'No,Nama Lengkap,Sekolah,Kecamatan,Status Kehadiran,Waktu Input,Metode Input,Catatan\n';
-
+            
             attendanceData.forEach((item, index) => {
                 csvContent += `${index + 1},"${item.name}","${item.school}","${item.district || '-'}","${item.status || 'Hadir'}","${item.time}","${item.method}","${item.notes || '-'}"\n`;
             });
-
+            
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
@@ -1638,7 +1563,7 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-
+            
             // Show success message
             const btn = this;
             const originalHTML = btn.innerHTML;
@@ -1651,32 +1576,32 @@
         });
 
         // Teacher Data Management
-        document.getElementById('addTeacherBtn').addEventListener('click', function () {
+        document.getElementById('addTeacherBtn').addEventListener('click', function() {
             document.getElementById('teacherFormSection').classList.remove('hidden');
             editingTeacherId = null;
             clearTeacherForm();
         });
 
-        document.getElementById('cancelTeacherBtn').addEventListener('click', function () {
+        document.getElementById('cancelTeacherBtn').addEventListener('click', function() {
             document.getElementById('teacherFormSection').classList.add('hidden');
             editingTeacherId = null;
             clearTeacherForm();
         });
 
-        document.getElementById('teacherForm').addEventListener('submit', function (e) {
+        document.getElementById('teacherForm').addEventListener('submit', function(e) {
             e.preventDefault();
-
+            
             const name = document.getElementById('teacherName').value.trim();
             const school = document.getElementById('teacherSchool').value.trim();
             const district = document.getElementById('teacherDistrict').value.trim();
-
+            
             if (name && school && district) {
                 if (editingTeacherId) {
                     updateTeacher(editingTeacherId, name, school, district);
                 } else {
                     addTeacher(name, school, district);
                 }
-
+                
                 document.getElementById('teacherFormSection').classList.add('hidden');
                 clearTeacherForm();
                 editingTeacherId = null;
@@ -1685,11 +1610,11 @@
 
         function addTeacher(name, school, district) {
             // Check for duplicates
-            const existing = teacherData.find(item =>
-                item.name.toLowerCase() === name.toLowerCase() &&
+            const existing = teacherData.find(item => 
+                item.name.toLowerCase() === name.toLowerCase() && 
                 item.school.toLowerCase() === school.toLowerCase()
             );
-
+            
             if (existing) {
                 alert(`⚠️ ${name} dari ${school} sudah ada dalam database`);
                 return;
@@ -1701,13 +1626,13 @@
                 school: school,
                 district: district
             };
-
+            
             teacherData.push(teacher);
             updateTeacherList();
-
+            
             // Auto-sync to Google Sheets if enabled
             autoSyncToSheets('teacher', teacher);
-
+            
             // Show success message
             showMessage('✅ Data guru berhasil ditambahkan!', 'success');
         }
@@ -1740,7 +1665,7 @@
                 document.getElementById('teacherName').value = teacher.name;
                 document.getElementById('teacherSchool').value = teacher.school;
                 document.getElementById('teacherDistrict').value = teacher.district;
-
+                
                 editingTeacherId = id;
                 document.getElementById('teacherFormSection').classList.remove('hidden');
             }
@@ -1755,16 +1680,16 @@
         function updateTeacherList() {
             const tbody = document.getElementById('teacherList');
             const emptyState = document.getElementById('teacherEmptyState');
-
+            
             if (teacherData.length === 0) {
                 tbody.innerHTML = '';
                 emptyState.style.display = 'block';
                 updateTeacherSelect();
                 return;
             }
-
+            
             emptyState.style.display = 'none';
-
+            
             tbody.innerHTML = teacherData.map((item, index) => `
                 <tr class="border-b border-gray-100 hover:bg-gray-50">
                     <td class="py-3 px-2 text-sm font-medium">${index + 1}</td>
@@ -1787,7 +1712,7 @@
                     </td>
                 </tr>
             `).join('');
-
+            
             // Update teacher select dropdown
             updateTeacherSelect();
         }
@@ -1795,10 +1720,10 @@
         function updateTeacherSelect() {
             const select = document.getElementById('manualName');
             const currentValue = select.value;
-
+            
             // Clear existing options except the first one
             select.innerHTML = '<option value="">Pilih nama guru...</option>';
-
+            
             // Add teacher options
             teacherData.forEach(teacher => {
                 const option = document.createElement('option');
@@ -1806,7 +1731,7 @@
                 option.textContent = teacher.name;
                 select.appendChild(option);
             });
-
+            
             // Restore selected value if it still exists
             if (currentValue && teacherData.find(t => t.id == currentValue)) {
                 select.value = currentValue;
@@ -1814,7 +1739,7 @@
         }
 
         // Export teacher data
-        document.getElementById('exportTeacherBtn').addEventListener('click', function () {
+        document.getElementById('exportTeacherBtn').addEventListener('click', function() {
             if (teacherData.length === 0) {
                 alert('Tidak ada data guru untuk diekspor');
                 return;
@@ -1829,11 +1754,11 @@
             csvContent += `Admin Export: ${currentAdmin || 'Sistem'}\n`;
             csvContent += `Total Guru: ${teacherData.length} orang\n\n`;
             csvContent += 'No,Nama Lengkap,Sekolah,Kecamatan\n';
-
+            
             teacherData.forEach((item, index) => {
                 csvContent += `${index + 1},"${item.name}","${item.school}","${item.district}"\n`;
             });
-
+            
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
@@ -1843,7 +1768,7 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-
+            
             // Show success message
             const btn = this;
             const originalHTML = btn.innerHTML;
@@ -1857,14 +1782,15 @@
 
         function showMessage(message, type) {
             const messageDiv = document.createElement('div');
-            messageDiv.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${type === 'success' ? 'bg-green-100 text-green-800' :
-                type === 'error' ? 'bg-red-100 text-red-800' :
-                    'bg-blue-100 text-blue-800'
-                }`;
+            messageDiv.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-100 text-green-800' : 
+                type === 'error' ? 'bg-red-100 text-red-800' : 
+                'bg-blue-100 text-blue-800'
+            }`;
             messageDiv.textContent = message;
-
+            
             document.body.appendChild(messageDiv);
-
+            
             setTimeout(() => {
                 messageDiv.remove();
             }, 3000);
@@ -1879,15 +1805,15 @@
 
             // Show modal
             document.getElementById('barcodeModal').classList.remove('hidden');
-
+            
             // Update teacher info
             document.getElementById('barcodeTeacherName').textContent = teacher.name;
             document.getElementById('barcodeTeacherSchool').textContent = teacher.school;
             document.getElementById('barcodeTeacherDistrict').textContent = teacher.district;
-
+            
             // Create barcode data - use teacher ID for simpler barcode
             const barcodeText = `PAI${teacher.id.toString().padStart(4, '0')}`;
-
+            
             currentBarcodeData = {
                 id: teacher.id,
                 name: teacher.name,
@@ -1896,20 +1822,20 @@
                 barcodeText: barcodeText,
                 timestamp: new Date().toISOString()
             };
-
+            
             // Generate barcode
             const canvas = document.getElementById('barcodeCanvas');
-
+            
             // Set canvas size for QR Code
             canvas.width = 300;
             canvas.height = 300;
-
+            
             console.log('Generating barcode for:', teacher.name);
             console.log('Barcode text:', barcodeText);
-
+            
             // Try multiple QR Code libraries for better compatibility
             let qrGenerated = false;
-
+            
             // Method 1: Try QRCode library
             if (typeof QRCode !== 'undefined' && !qrGenerated) {
                 try {
@@ -1937,7 +1863,7 @@
             } else {
                 tryQRious();
             }
-
+            
             // Method 2: Try QRious library
             function tryQRious() {
                 if (typeof QRious !== 'undefined' && !qrGenerated) {
@@ -1960,7 +1886,7 @@
                     tryManualQR();
                 }
             }
-
+            
             // Method 3: Manual QR Code generation using canvas
             function tryManualQR() {
                 if (!qrGenerated) {
@@ -1983,15 +1909,15 @@
             const modules = 25; // QR Code grid size
             const moduleSize = Math.floor(size / modules);
             const offset = (size - (modules * moduleSize)) / 2;
-
+            
             // Clear canvas
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, size, size);
             ctx.fillStyle = '#000000';
-
+            
             // Create a simple pattern based on text
             const pattern = createQRPattern(text, modules);
-
+            
             // Draw QR Code pattern
             for (let row = 0; row < modules; row++) {
                 for (let col = 0; col < modules; col++) {
@@ -2006,27 +1932,27 @@
                 }
             }
         }
-
+        
         function createQRPattern(text, size) {
             const pattern = Array(size).fill().map(() => Array(size).fill(false));
-
+            
             // Add finder patterns (corner squares)
             addFinderPattern(pattern, 0, 0);
             addFinderPattern(pattern, 0, size - 7);
             addFinderPattern(pattern, size - 7, 0);
-
+            
             // Add timing patterns
             for (let i = 8; i < size - 8; i++) {
                 pattern[6][i] = i % 2 === 0;
                 pattern[i][6] = i % 2 === 0;
             }
-
+            
             // Add data pattern based on text
             let hash = 0;
             for (let i = 0; i < text.length; i++) {
                 hash = ((hash << 5) - hash + text.charCodeAt(i)) & 0xffffffff;
             }
-
+            
             for (let row = 0; row < size; row++) {
                 for (let col = 0; col < size; col++) {
                     if (!isReservedArea(row, col, size)) {
@@ -2035,10 +1961,10 @@
                     }
                 }
             }
-
+            
             return pattern;
         }
-
+        
         function addFinderPattern(pattern, startRow, startCol) {
             // 7x7 finder pattern
             for (let row = 0; row < 7; row++) {
@@ -2062,20 +1988,20 @@
                 }
             }
         }
-
+        
         function isReservedArea(row, col, size) {
             // Finder patterns and separators
-            if ((row < 9 && col < 9) ||
-                (row < 9 && col >= size - 8) ||
+            if ((row < 9 && col < 9) || 
+                (row < 9 && col >= size - 8) || 
                 (row >= size - 8 && col < 9)) {
                 return true;
             }
-
+            
             // Timing patterns
             if (row === 6 || col === 6) {
                 return true;
             }
-
+            
             return false;
         }
 
@@ -2084,17 +2010,17 @@
             const canvas = ctx.canvas;
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+            
             // Draw QR Code-like pattern
             ctx.fillStyle = '#000000';
             const qrText = `PAI${teacher.id.toString().padStart(4, '0')}`;
-
+            
             // Draw grid pattern to simulate QR Code
             const cellSize = 8;
             const startX = 50;
             const startY = 50;
             const gridSize = 15;
-
+            
             // Create a simple pattern based on teacher ID
             for (let i = 0; i < gridSize; i++) {
                 for (let j = 0; j < gridSize; j++) {
@@ -2105,68 +2031,68 @@
                     }
                 }
             }
-
+            
             // Draw corner squares (QR Code markers)
             const markerSize = cellSize * 3;
             // Top-left
             ctx.fillRect(startX, startY, markerSize, markerSize);
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(startX + cellSize, startY + cellSize, cellSize, cellSize);
-
+            
             // Top-right
             ctx.fillStyle = '#000000';
             ctx.fillRect(startX + (gridSize - 3) * cellSize, startY, markerSize, markerSize);
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(startX + (gridSize - 2) * cellSize, startY + cellSize, cellSize, cellSize);
-
+            
             // Bottom-left
             ctx.fillStyle = '#000000';
             ctx.fillRect(startX, startY + (gridSize - 3) * cellSize, markerSize, markerSize);
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(startX + cellSize, startY + (gridSize - 2) * cellSize, cellSize, cellSize);
-
+            
             // Add text below QR Code
             ctx.fillStyle = '#000000';
             ctx.font = 'bold 14px monospace';
             ctx.textAlign = 'center';
             ctx.fillText(qrText, canvas.width / 2, startY + gridSize * cellSize + 30);
-
+            
             showMessage('⚠️ QR Code library error, menggunakan QR Code alternatif', 'error');
         }
 
         // Modal close functionality
-        document.getElementById('closeBarcodeModal').addEventListener('click', function () {
+        document.getElementById('closeBarcodeModal').addEventListener('click', function() {
             document.getElementById('barcodeModal').classList.add('hidden');
         });
 
         // Close modal when clicking outside
-        document.getElementById('barcodeModal').addEventListener('click', function (e) {
+        document.getElementById('barcodeModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 this.classList.add('hidden');
             }
         });
 
         // Download barcode
-        document.getElementById('downloadBarcode').addEventListener('click', function () {
+        document.getElementById('downloadBarcode').addEventListener('click', function() {
             if (!currentBarcodeData) return;
-
+            
             const canvas = document.getElementById('barcodeCanvas');
             const link = document.createElement('a');
             link.download = `QRCode_${currentBarcodeData.name.replace(/[^a-zA-Z0-9]/g, '_')}.png`;
             link.href = canvas.toDataURL();
             link.click();
-
+            
             showMessage('✅ QR Code berhasil didownload!', 'success');
         });
 
         // Print barcode
-        document.getElementById('printBarcode').addEventListener('click', function () {
+        document.getElementById('printBarcode').addEventListener('click', function() {
             if (!currentBarcodeData) return;
-
+            
             const canvas = document.getElementById('barcodeCanvas');
             const printWindow = window.open('', '_blank');
             const img = canvas.toDataURL();
-
+            
             printWindow.document.write(`
                 <html>
                 <head>
@@ -2220,26 +2146,26 @@
                     <div class="footer">
                         <p>Scan QR Code ini untuk mencatat kehadiran secara otomatis</p>
                         <p>Dibuat pada: ${new Date().toLocaleDateString('id-ID', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            })}</p>
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}</p>
                     </div>
                 </body>
                 </html>
             `);
-
+            
             printWindow.document.close();
             printWindow.focus();
-
+            
             setTimeout(() => {
                 printWindow.print();
                 printWindow.close();
             }, 250);
-
+            
             showMessage('✅ QR Code siap untuk dicetak!', 'success');
         });
 
@@ -2253,7 +2179,7 @@
                     { id: 4, name: "Fatimah Zahra, S.Ag", school: "SDN 01 Sejahtera", district: "Sejahtera" },
                     { id: 5, name: "Abdul Rahman, S.Pd.I", school: "SDN 02 Sejahtera", district: "Sejahtera" }
                 ];
-
+                
                 teacherData = sampleTeachers;
                 updateTeacherList();
             }
@@ -2265,7 +2191,5 @@
         initializeSampleData();
         loadSheetsConfig();
     </script>
-    <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'98bc3507f41d5fd8',t:'MTc1OTk5NTM4OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
-</body>
-
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98bc524233abfb86',t:'MTc1OTk5NjU4NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
