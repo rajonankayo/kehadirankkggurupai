@@ -585,10 +585,31 @@
 
         async function startScanner() {
             try {
-                stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: 'environment' } 
-                });
+                // Check if getUserMedia is supported
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('Browser tidak mendukung akses kamera');
+                }
+
+                // Try different camera configurations
+                let constraints = { video: { facingMode: 'environment' } };
+                
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia(constraints);
+                } catch (err) {
+                    console.log('Fallback to any camera:', err);
+                    // Fallback to any available camera
+                    constraints = { video: true };
+                    stream = await navigator.mediaDevices.getUserMedia(constraints);
+                }
+                
                 video.srcObject = stream;
+                
+                // Wait for video to be ready
+                await new Promise((resolve) => {
+                    video.onloadedmetadata = () => {
+                        video.play().then(resolve).catch(resolve);
+                    };
+                });
                 
                 scannerPlaceholder.style.display = 'none';
                 video.style.display = 'block';
@@ -596,9 +617,29 @@
                 stopScanBtn.classList.remove('hidden');
                 
                 scanning = true;
-                scanBarcode();
+                
+                // Wait a bit before starting scan to ensure video is ready
+                setTimeout(() => {
+                    if (scanning) {
+                        scanBarcode();
+                    }
+                }, 500);
+                
             } catch (err) {
-                showScanResult('❌ Tidak dapat mengakses kamera. Pastikan izin kamera telah diberikan.', 'error');
+                console.error('Camera error:', err);
+                let errorMessage = '❌ Tidak dapat mengakses kamera. ';
+                
+                if (err.name === 'NotAllowedError') {
+                    errorMessage += 'Izin kamera ditolak. Silakan refresh halaman dan izinkan akses kamera.';
+                } else if (err.name === 'NotFoundError') {
+                    errorMessage += 'Kamera tidak ditemukan pada perangkat ini.';
+                } else if (err.name === 'NotSupportedError') {
+                    errorMessage += 'Browser tidak mendukung akses kamera.';
+                } else {
+                    errorMessage += 'Pastikan kamera tidak digunakan aplikasi lain dan refresh halaman.';
+                }
+                
+                showScanResult(errorMessage, 'error');
             }
         }
 
@@ -616,19 +657,39 @@
         }
 
         function scanBarcode() {
-            if (!scanning) return;
+            if (!scanning || !video.videoWidth || !video.videoHeight) {
+                if (scanning) {
+                    requestAnimationFrame(scanBarcode);
+                }
+                return;
+            }
 
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height);
-            
-            if (code) {
-                processBarcode(code.data);
-            } else {
-                requestAnimationFrame(scanBarcode);
+            try {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                
+                // Check if jsQR is available
+                if (typeof jsQR !== 'undefined') {
+                    const code = jsQR(imageData.data, imageData.width, imageData.height);
+                    
+                    if (code) {
+                        processBarcode(code.data);
+                        return;
+                    }
+                }
+                
+                // Continue scanning
+                if (scanning) {
+                    requestAnimationFrame(scanBarcode);
+                }
+            } catch (err) {
+                console.error('Scan error:', err);
+                if (scanning) {
+                    requestAnimationFrame(scanBarcode);
+                }
             }
         }
 
@@ -1325,5 +1386,5 @@
         updateTeacherList();
         initializeSampleData();
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98bbeb22f1389cf6',t:'MTc1OTk5MjM2MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98bbf01be4929cf6',t:'MTc1OTk5MjU2NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
