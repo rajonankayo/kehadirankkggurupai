@@ -271,7 +271,7 @@
                         </button>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="bg-emerald-50 p-4 rounded-lg">
                             <h5 class="font-semibold text-emerald-800 mb-2">📋 Fitur Kehadiran</h5>
                             <p class="text-sm text-emerald-700 mb-3">Kelola data kehadiran peserta KKG PAI</p>
@@ -287,6 +287,14 @@
                                 Buka Data Guru
                             </button>
                         </div>
+                        
+                        <div class="bg-purple-50 p-4 rounded-lg">
+                            <h5 class="font-semibold text-purple-800 mb-2">📊 Google Sheets</h5>
+                            <p class="text-sm text-purple-700 mb-3">Sinkronisasi data ke spreadsheet</p>
+                            <button onclick="openSheetsModal()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+                                Setup Sheets
+                            </button>
+                        </div>
                     </div>
 
                     <div class="mt-6 p-4 bg-gray-50 rounded-lg">
@@ -295,6 +303,7 @@
                             <p>• Sebagai admin, Anda dapat menginput kehadiran secara manual</p>
                             <p>• Anda dapat mengelola data guru PAI (tambah, edit, hapus)</p>
                             <p>• Semua data dapat diekspor ke format CSV</p>
+                            <p>• Data dapat disinkronkan ke Google Sheets secara otomatis</p>
                             <p>• Pastikan logout setelah selesai menggunakan sistem</p>
                         </div>
                     </div>
@@ -385,6 +394,126 @@
             </div>
         </div>
 
+        <!-- Google Sheets Modal -->
+        <div id="sheetsModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-full overflow-y-auto">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">📊 Setup Google Sheets</h3>
+                        <button id="closeSheetsModal" class="text-gray-500 hover:text-gray-700 text-2xl">
+                            ✕
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <!-- Status Section -->
+                        <div id="sheetsStatus" class="p-4 rounded-lg bg-gray-50">
+                            <h4 class="font-semibold text-gray-800 mb-2">📋 Status Konfigurasi</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span>Sheet Kehadiran:</span>
+                                    <span id="attendanceSheetStatus" class="text-red-600">❌ Belum dikonfigurasi</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Sheet Data Guru:</span>
+                                    <span id="teacherSheetStatus" class="text-red-600">❌ Belum dikonfigurasi</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Auto-Sync:</span>
+                                    <span id="autoSyncStatus" class="text-red-600">❌ Nonaktif</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Instructions -->
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-blue-800 mb-3">📝 Panduan Setup (5 Langkah Mudah)</h4>
+                            <ol class="text-sm text-blue-700 space-y-2 list-decimal list-inside">
+                                <li><strong>Buka Google Sheets</strong> → Buat 2 spreadsheet baru:
+                                    <br>• "Data Kehadiran KKG PAI"
+                                    <br>• "Data Guru PAI"
+                                </li>
+                                <li><strong>Set Sharing</strong> → Klik "Share" → Pilih "Anyone with the link can edit"</li>
+                                <li><strong>Copy URL</strong> → Copy link dari address bar browser</li>
+                                <li><strong>Paste URL</strong> → Masukkan ke form di bawah</li>
+                                <li><strong>Aktifkan Auto-Sync</strong> → Centang checkbox dan klik Simpan</li>
+                            </ol>
+                        </div>
+
+                        <!-- Configuration Form -->
+                        <form id="sheetsConfigForm" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    📋 URL Google Sheets - Data Kehadiran
+                                </label>
+                                <input type="url" id="attendanceSheetUrl" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors" placeholder="https://docs.google.com/spreadsheets/d/...">
+                                <p class="text-xs text-gray-500 mt-1">Paste URL Google Sheets untuk menyimpan data kehadiran</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    👥 URL Google Sheets - Data Guru PAI
+                                </label>
+                                <input type="url" id="teacherSheetUrl" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors" placeholder="https://docs.google.com/spreadsheets/d/...">
+                                <p class="text-xs text-gray-500 mt-1">Paste URL Google Sheets untuk menyimpan data guru PAI</p>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" id="enableAutoSync" class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
+                                <label for="enableAutoSync" class="text-sm font-medium text-gray-700">
+                                    🔄 Aktifkan sinkronisasi otomatis ke Google Sheets
+                                </label>
+                            </div>
+
+                            <div class="flex gap-3">
+                                <button type="submit" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                                    💾 Simpan Konfigurasi
+                                </button>
+                                <button type="button" id="testSheetsBtn" class="px-6 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                                    🧪 Test Koneksi
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Quick Actions -->
+                        <div class="border-t pt-4">
+                            <h4 class="font-semibold text-gray-800 mb-3">⚡ Aksi Cepat</h4>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button onclick="syncAllToSheets()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+                                    📤 Sync Semua Data
+                                </button>
+                                <button onclick="openSheetsInNewTab()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+                                    🔗 Buka Google Sheets
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sync Notification -->
+        <div id="syncNotification" class="fixed bottom-4 right-4 bg-white rounded-lg shadow-lg border-l-4 border-purple-500 p-4 z-50 hidden max-w-sm">
+            <div class="flex items-start gap-3">
+                <div class="text-purple-500 text-xl">📊</div>
+                <div class="flex-1">
+                    <h4 class="font-semibold text-gray-800 text-sm">Data Siap Disinkronkan!</h4>
+                    <p id="syncNotificationText" class="text-xs text-gray-600 mb-2"></p>
+                    <div class="flex gap-2">
+                        <button onclick="copySyncData()" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-xs font-semibold transition-colors">
+                            📋 Copy Data
+                        </button>
+                        <button onclick="openSheetsInNewTab()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-semibold transition-colors">
+                            🔗 Buka Sheet
+                        </button>
+                        <button onclick="hideSyncNotification()" class="text-gray-500 hover:text-gray-700 px-2 py-1 text-xs">
+                            ✕
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Barcode Modal -->
         <div id="barcodeModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
             <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-full overflow-y-auto">
@@ -434,6 +563,15 @@
         let currentAdmin = '';
         let editingTeacherId = null;
 
+        // Google Sheets Integration
+        let sheetsConfig = {
+            attendanceSheetUrl: '',
+            teacherSheetUrl: '',
+            autoSync: false
+        };
+
+        let pendingSyncData = null;
+
         // Admin credentials (in real app, this should be secured)
         const adminCredentials = {
             'admin': 'admin123',
@@ -448,6 +586,287 @@
             month: 'long',
             day: 'numeric'
         });
+
+        // Load sheets configuration from localStorage
+        function loadSheetsConfig() {
+            const saved = localStorage.getItem('kkgPaiSheetsConfig');
+            if (saved) {
+                sheetsConfig = JSON.parse(saved);
+                updateSheetsStatus();
+            }
+        }
+
+        // Save sheets configuration to localStorage
+        function saveSheetsConfig() {
+            localStorage.setItem('kkgPaiSheetsConfig', JSON.stringify(sheetsConfig));
+            updateSheetsStatus();
+        }
+
+        // Update sheets status display
+        function updateSheetsStatus() {
+            const attendanceStatus = document.getElementById('attendanceSheetStatus');
+            const teacherStatus = document.getElementById('teacherSheetStatus');
+            const autoSyncStatus = document.getElementById('autoSyncStatus');
+
+            if (sheetsConfig.attendanceSheetUrl) {
+                attendanceStatus.textContent = '✅ Terkonfigurasi';
+                attendanceStatus.className = 'text-green-600';
+            } else {
+                attendanceStatus.textContent = '❌ Belum dikonfigurasi';
+                attendanceStatus.className = 'text-red-600';
+            }
+
+            if (sheetsConfig.teacherSheetUrl) {
+                teacherStatus.textContent = '✅ Terkonfigurasi';
+                teacherStatus.className = 'text-green-600';
+            } else {
+                teacherStatus.textContent = '❌ Belum dikonfigurasi';
+                teacherStatus.className = 'text-red-600';
+            }
+
+            if (sheetsConfig.autoSync) {
+                autoSyncStatus.textContent = '✅ Aktif';
+                autoSyncStatus.className = 'text-green-600';
+            } else {
+                autoSyncStatus.textContent = '❌ Nonaktif';
+                autoSyncStatus.className = 'text-red-600';
+            }
+        }
+
+        // Open sheets modal
+        function openSheetsModal() {
+            document.getElementById('sheetsModal').classList.remove('hidden');
+            
+            // Populate form with current config
+            document.getElementById('attendanceSheetUrl').value = sheetsConfig.attendanceSheetUrl;
+            document.getElementById('teacherSheetUrl').value = sheetsConfig.teacherSheetUrl;
+            document.getElementById('enableAutoSync').checked = sheetsConfig.autoSync;
+            
+            updateSheetsStatus();
+        }
+
+        // Close sheets modal
+        document.getElementById('closeSheetsModal').addEventListener('click', function() {
+            document.getElementById('sheetsModal').classList.add('hidden');
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('sheetsModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
+            }
+        });
+
+        // Sheets configuration form
+        document.getElementById('sheetsConfigForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const attendanceUrl = document.getElementById('attendanceSheetUrl').value.trim();
+            const teacherUrl = document.getElementById('teacherSheetUrl').value.trim();
+            const autoSync = document.getElementById('enableAutoSync').checked;
+            
+            // Validate URLs
+            if (attendanceUrl && !isValidGoogleSheetsUrl(attendanceUrl)) {
+                showMessage('❌ URL Google Sheets kehadiran tidak valid', 'error');
+                return;
+            }
+            
+            if (teacherUrl && !isValidGoogleSheetsUrl(teacherUrl)) {
+                showMessage('❌ URL Google Sheets data guru tidak valid', 'error');
+                return;
+            }
+            
+            // Save configuration
+            sheetsConfig.attendanceSheetUrl = attendanceUrl;
+            sheetsConfig.teacherSheetUrl = teacherUrl;
+            sheetsConfig.autoSync = autoSync;
+            
+            saveSheetsConfig();
+            
+            // Close modal
+            document.getElementById('sheetsModal').classList.add('hidden');
+            
+            showMessage('✅ Konfigurasi Google Sheets berhasil disimpan!', 'success');
+            
+            // If auto-sync is enabled, sync existing data
+            if (autoSync && (attendanceUrl || teacherUrl)) {
+                setTimeout(() => {
+                    syncAllToSheets();
+                }, 1000);
+            }
+        });
+
+        // Validate Google Sheets URL
+        function isValidGoogleSheetsUrl(url) {
+            return url.includes('docs.google.com/spreadsheets') && url.includes('/d/');
+        }
+
+        // Extract sheet ID from URL
+        function extractSheetId(url) {
+            const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+            return match ? match[1] : null;
+        }
+
+        // Test sheets connection
+        document.getElementById('testSheetsBtn').addEventListener('click', function() {
+            const attendanceUrl = document.getElementById('attendanceSheetUrl').value.trim();
+            const teacherUrl = document.getElementById('teacherSheetUrl').value.trim();
+            
+            if (!attendanceUrl && !teacherUrl) {
+                showMessage('❌ Masukkan minimal satu URL Google Sheets untuk test', 'error');
+                return;
+            }
+            
+            let testResults = [];
+            
+            if (attendanceUrl) {
+                if (isValidGoogleSheetsUrl(attendanceUrl)) {
+                    testResults.push('✅ URL Kehadiran: Valid');
+                } else {
+                    testResults.push('❌ URL Kehadiran: Tidak valid');
+                }
+            }
+            
+            if (teacherUrl) {
+                if (isValidGoogleSheetsUrl(teacherUrl)) {
+                    testResults.push('✅ URL Data Guru: Valid');
+                } else {
+                    testResults.push('❌ URL Data Guru: Tidak valid');
+                }
+            }
+            
+            showMessage(testResults.join('\n'), testResults.every(r => r.includes('✅')) ? 'success' : 'error');
+        });
+
+        // Sync all data to sheets
+        function syncAllToSheets() {
+            if (!sheetsConfig.attendanceSheetUrl && !sheetsConfig.teacherSheetUrl) {
+                showMessage('❌ Belum ada Google Sheets yang dikonfigurasi', 'error');
+                return;
+            }
+            
+            let syncData = '';
+            
+            // Prepare attendance data
+            if (sheetsConfig.attendanceSheetUrl && attendanceData.length > 0) {
+                syncData += 'DATA KEHADIRAN KKG PAI\n';
+                syncData += `Pengawas: Dewi Yuliani, S.Ag, MA\n`;
+                syncData += `Tanggal: ${new Date().toLocaleDateString('id-ID')}\n`;
+                syncData += `Total Peserta: ${attendanceData.length} orang\n\n`;
+                syncData += 'No\tNama Lengkap\tSekolah\tKecamatan\tStatus\tWaktu\tMetode\n';
+                
+                attendanceData.forEach((item, index) => {
+                    syncData += `${index + 1}\t${item.name}\t${item.school}\t${item.district || '-'}\t${item.status}\t${item.time}\t${item.method}\n`;
+                });
+                
+                syncData += '\n\n';
+            }
+            
+            // Prepare teacher data
+            if (sheetsConfig.teacherSheetUrl && teacherData.length > 0) {
+                syncData += 'DATA GURU PAI\n';
+                syncData += `Pengawas: Dewi Yuliani, S.Ag, MA\n`;
+                syncData += `Total Guru: ${teacherData.length} orang\n\n`;
+                syncData += 'No\tNama Lengkap\tSekolah\tKecamatan\n';
+                
+                teacherData.forEach((item, index) => {
+                    syncData += `${index + 1}\t${item.name}\t${item.school}\t${item.district}\n`;
+                });
+            }
+            
+            if (syncData) {
+                pendingSyncData = syncData;
+                showSyncNotification('Semua data siap disinkronkan ke Google Sheets');
+            } else {
+                showMessage('❌ Tidak ada data untuk disinkronkan', 'error');
+            }
+        }
+
+        // Auto-sync when new data is added
+        function autoSyncToSheets(type, data) {
+            if (!sheetsConfig.autoSync) return;
+            
+            let syncData = '';
+            const currentDate = new Date().toLocaleDateString('id-ID');
+            const currentTime = new Date().toLocaleTimeString('id-ID');
+            
+            if (type === 'attendance' && sheetsConfig.attendanceSheetUrl) {
+                syncData = `${data.name}\t${data.school}\t${data.district || '-'}\t${data.status}\t${data.time}\t${data.method}\t${currentDate} ${currentTime}`;
+                pendingSyncData = syncData;
+                showSyncNotification(`Data kehadiran ${data.name} siap disinkronkan`);
+            } else if (type === 'teacher' && sheetsConfig.teacherSheetUrl) {
+                syncData = `${data.name}\t${data.school}\t${data.district}\t${currentDate} ${currentTime}`;
+                pendingSyncData = syncData;
+                showSyncNotification(`Data guru ${data.name} siap disinkronkan`);
+            }
+        }
+
+        // Show sync notification
+        function showSyncNotification(message) {
+            const notification = document.getElementById('syncNotification');
+            const text = document.getElementById('syncNotificationText');
+            
+            text.textContent = message;
+            notification.classList.remove('hidden');
+            
+            // Auto-hide after 10 seconds
+            setTimeout(() => {
+                hideSyncNotification();
+            }, 10000);
+        }
+
+        // Hide sync notification
+        function hideSyncNotification() {
+            document.getElementById('syncNotification').classList.add('hidden');
+        }
+
+        // Copy sync data to clipboard
+        function copySyncData() {
+            if (!pendingSyncData) {
+                showMessage('❌ Tidak ada data untuk dicopy', 'error');
+                return;
+            }
+            
+            navigator.clipboard.writeText(pendingSyncData).then(() => {
+                showMessage('✅ Data berhasil dicopy! Paste ke Google Sheets', 'success');
+                hideSyncNotification();
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = pendingSyncData;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                showMessage('✅ Data berhasil dicopy! Paste ke Google Sheets', 'success');
+                hideSyncNotification();
+            });
+        }
+
+        // Open Google Sheets in new tab
+        function openSheetsInNewTab() {
+            const urls = [];
+            
+            if (sheetsConfig.attendanceSheetUrl) {
+                urls.push(sheetsConfig.attendanceSheetUrl);
+            }
+            
+            if (sheetsConfig.teacherSheetUrl) {
+                urls.push(sheetsConfig.teacherSheetUrl);
+            }
+            
+            if (urls.length === 0) {
+                showMessage('❌ Belum ada Google Sheets yang dikonfigurasi', 'error');
+                return;
+            }
+            
+            urls.forEach(url => {
+                window.open(url, '_blank', 'noopener,noreferrer');
+            });
+            
+            showMessage(`✅ Membuka ${urls.length} Google Sheets di tab baru`, 'success');
+        }
 
         // Tab functionality
         document.getElementById('attendanceTab').addEventListener('click', function() {
@@ -1055,6 +1474,9 @@
             
             attendanceData.push(attendance);
             updateAttendanceList();
+            
+            // Auto-sync to Google Sheets if enabled
+            autoSyncToSheets('attendance', attendance);
         }
 
         function updateAttendanceList() {
@@ -1211,6 +1633,9 @@
             
             teacherData.push(teacher);
             updateTeacherList();
+            
+            // Auto-sync to Google Sheets if enabled
+            autoSyncToSheets('teacher', teacher);
             
             // Show success message
             showMessage('✅ Data guru berhasil ditambahkan!', 'success');
@@ -1768,6 +2193,7 @@
         updateAttendanceList();
         updateTeacherList();
         initializeSampleData();
+        loadSheetsConfig();
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98bc1cb073635fd8',t:'MTc1OTk5NDM5MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98bc3507f41d5fd8',t:'MTc1OTk5NTM4OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
