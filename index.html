@@ -1,32 +1,28 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daftar Hadir KKG PAI Binaan - Dewi Yuliani, S.Ag, MA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-    <script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
         body {
             box-sizing: border-box;
         }
-
         .scanner-container {
             position: relative;
             width: 100%;
             max-width: 400px;
             margin: 0 auto;
         }
-
         #video {
             width: 100%;
             height: 300px;
             object-fit: cover;
             border-radius: 12px;
         }
-
         .scanner-overlay {
             position: absolute;
             top: 50%;
@@ -38,25 +34,15 @@
             border-radius: 12px;
             box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.3);
         }
-
         .pulse {
             animation: pulse 2s infinite;
         }
-
         @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.5;
-            }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
     </style>
 </head>
-
 <body class="bg-gradient-to-br from-emerald-50 to-blue-50 min-h-full">
     <div class="container mx-auto px-4 py-6">
         <!-- Header -->
@@ -74,16 +60,13 @@
         <!-- Tab Navigation -->
         <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
             <div class="flex flex-wrap gap-2 mb-6">
-                <button id="attendanceTab"
-                    class="tab-btn active px-4 py-2 rounded-lg font-semibold transition-colors bg-emerald-600 text-white">
+                <button id="attendanceTab" class="tab-btn active px-4 py-2 rounded-lg font-semibold transition-colors bg-emerald-600 text-white">
                     📋 Kehadiran
                 </button>
-                <button id="teacherDataTab"
-                    class="tab-btn px-4 py-2 rounded-lg font-semibold transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300 hidden">
+                <button id="teacherDataTab" class="tab-btn px-4 py-2 rounded-lg font-semibold transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300 hidden">
                     👥 Data Guru PAI
                 </button>
-                <button id="adminTab"
-                    class="tab-btn px-4 py-2 rounded-lg font-semibold transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300">
+                <button id="adminTab" class="tab-btn px-4 py-2 rounded-lg font-semibold transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300">
                     🔐 Admin Login
                 </button>
             </div>
@@ -94,160 +77,147 @@
             <!-- Scanner Section -->
             <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
                 <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">📱 Scan Barcode Kehadiran</h2>
-
-                <div class="scanner-container mb-4">
-                    <video id="video" autoplay muted playsinline style="display: none;"></video>
-                    <canvas id="canvas" style="display: none;"></canvas>
-                    <div class="scanner-overlay pulse" id="scannerOverlay" style="display: none;"></div>
-
-                    <div id="scannerPlaceholder" class="bg-gray-100 rounded-xl h-72 flex items-center justify-center">
-                        <div class="text-center">
-                            <div class="text-6xl mb-4">📷</div>
-                            <button id="startScanBtn"
-                                class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
-                                Mulai Scan Barcode
-                            </button>
-                        </div>
+            
+            <div class="scanner-container mb-4">
+                <video id="video" autoplay muted playsinline style="display: none;"></video>
+                <canvas id="canvas" style="display: none;"></canvas>
+                <div class="scanner-overlay pulse" id="scannerOverlay" style="display: none;"></div>
+                
+                <div id="scannerPlaceholder" class="bg-gray-100 rounded-xl h-72 flex items-center justify-center">
+                    <div class="text-center">
+                        <div class="text-6xl mb-4">📷</div>
+                        <button id="startScanBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                            Mulai Scan Barcode
+                        </button>
                     </div>
                 </div>
+            </div>
 
-                <div id="scanResult" class="hidden p-4 rounded-lg mb-4"></div>
+            <div id="scanResult" class="hidden p-4 rounded-lg mb-4"></div>
+            
+            <div class="text-center">
+                <button id="stopScanBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors hidden">
+                    Berhenti Scan
+                </button>
+            </div>
+        </div>
 
-                <div class="text-center">
-                    <button id="stopScanBtn"
-                        class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors hidden">
-                        Berhenti Scan
+
+
+        <!-- Manual Entry -->
+        <div id="manualEntrySection" class="bg-white rounded-xl shadow-lg p-6 mb-6 hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">✏️ Input Data Kehadiran</h3>
+                <div class="flex items-center gap-3">
+                    <span class="text-sm text-emerald-600 font-medium">👤 Admin: <span id="loggedInUser"></span></span>
+                    <button id="logoutBtn" class="text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg transition-colors">
+                        🚪 Logout
                     </button>
                 </div>
             </div>
-
-
-
-            <!-- Manual Entry -->
-            <div id="manualEntrySection" class="bg-white rounded-xl shadow-lg p-6 mb-6 hidden">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-gray-800">✏️ Input Data Kehadiran</h3>
-                    <div class="flex items-center gap-3">
-                        <span class="text-sm text-emerald-600 font-medium">👤 Admin: <span
-                                id="loggedInUser"></span></span>
-                        <button id="logoutBtn"
-                            class="text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg transition-colors">
-                            🚪 Logout
-                        </button>
+            <form id="manualForm" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <span class="text-red-500">*</span> Nama Lengkap
+                        </label>
+                        <select id="manualName" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
+                            <option value="">Pilih nama guru...</option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Pilih nama dari database guru PAI</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <span class="text-red-500">*</span> Nama Sekolah
+                        </label>
+                        <input type="text" id="manualSchool" required readonly class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600" placeholder="Akan terisi otomatis">
+                        <p class="text-xs text-gray-500 mt-1">Terisi otomatis setelah memilih nama</p>
                     </div>
                 </div>
-                <form id="manualForm" class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                <span class="text-red-500">*</span> Nama Lengkap
-                            </label>
-                            <select id="manualName" required
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
-                                <option value="">Pilih nama guru...</option>
-                            </select>
-                            <p class="text-xs text-gray-500 mt-1">Pilih nama dari database guru PAI</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                <span class="text-red-500">*</span> Nama Sekolah
-                            </label>
-                            <input type="text" id="manualSchool" required readonly
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
-                                placeholder="Akan terisi otomatis">
-                            <p class="text-xs text-gray-500 mt-1">Terisi otomatis setelah memilih nama</p>
-                        </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <span class="text-red-500">*</span> Kecamatan
+                        </label>
+                        <input type="text" id="manualDistrict" required readonly class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600" placeholder="Akan terisi otomatis">
+                        <p class="text-xs text-gray-500 mt-1">Terisi otomatis setelah memilih nama</p>
                     </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                <span class="text-red-500">*</span> Kecamatan
-                            </label>
-                            <input type="text" id="manualDistrict" required readonly
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
-                                placeholder="Akan terisi otomatis">
-                            <p class="text-xs text-gray-500 mt-1">Terisi otomatis setelah memilih nama</p>
-                        </div>
-                    </div>
+                </div>
+                
 
 
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                <span class="text-red-500">*</span> Status Kehadiran
-                            </label>
-                            <select id="attendanceStatus" required
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
-                                <option value="">Pilih status kehadiran</option>
-                                <option value="Hadir">✅ Hadir</option>
-                                <option value="Sakit">🤒 Sakit</option>
-                                <option value="Izin">📝 Izin</option>
-                                <option value="Alpha">❌ Alpha</option>
-                            </select>
-                            <p class="text-xs text-gray-500 mt-1">Pilih status kehadiran peserta</p>
-                        </div>
-                    </div>
-
-                    <div class="flex gap-3">
-                        <button type="submit"
-                            class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2">
-                            <span>✅</span> Tambah Kehadiran
-                        </button>
-                        <button type="button" id="clearFormBtn"
-                            class="px-6 bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-lg font-semibold transition-colors">
-                            🗑️ Bersihkan
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Attendance List -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-gray-800">📋 Daftar Kehadiran</h3>
-                    <div class="text-sm text-gray-600">
-                        <div class="flex flex-wrap gap-2">
-                            <span>Total: <span id="totalCount" class="font-semibold text-emerald-600">0</span></span>
-                            <span class="text-green-600">✅ <span id="hadirCount">0</span></span>
-                            <span class="text-yellow-600">🤒 <span id="sakitCount">0</span></span>
-                            <span class="text-blue-600">📝 <span id="izinCount">0</span></span>
-                            <span class="text-red-600">❌ <span id="alphaCount">0</span></span>
-                        </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <span class="text-red-500">*</span> Status Kehadiran
+                        </label>
+                        <select id="attendanceStatus" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
+                            <option value="">Pilih status kehadiran</option>
+                            <option value="Hadir">✅ Hadir</option>
+                            <option value="Sakit">🤒 Sakit</option>
+                            <option value="Izin">📝 Izin</option>
+                            <option value="Alpha">❌ Alpha</option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Pilih status kehadiran peserta</p>
                     </div>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead>
-                            <tr class="border-b border-gray-200">
-                                <th class="text-left py-3 px-2 font-semibold text-gray-700">No</th>
-                                <th class="text-left py-3 px-2 font-semibold text-gray-700">Nama Lengkap</th>
-                                <th class="text-left py-3 px-2 font-semibold text-gray-700">Sekolah</th>
-                                <th class="text-left py-3 px-2 font-semibold text-gray-700">Kecamatan</th>
-                                <th class="text-left py-3 px-2 font-semibold text-gray-700">Status</th>
-                                <th class="text-left py-3 px-2 font-semibold text-gray-700">Waktu Input</th>
-                                <th class="text-left py-3 px-2 font-semibold text-gray-700">Metode</th>
-                            </tr>
-                        </thead>
-                        <tbody id="attendanceList">
-                            <!-- Attendance records will be added here -->
-                        </tbody>
-                    </table>
+                <div class="flex gap-3">
+                    <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2">
+                        <span>✅</span> Tambah Kehadiran
+                    </button>
+                    <button type="button" id="clearFormBtn" class="px-6 bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-lg font-semibold transition-colors">
+                        🗑️ Bersihkan
+                    </button>
+                </div>
+            </form>
+        </div>
 
-                    <div id="emptyState" class="text-center py-8 text-gray-500">
-                        <div class="text-4xl mb-2">📝</div>
-                        <p>Belum ada peserta yang hadir</p>
-                        <p class="text-sm">Scan barcode atau input manual untuk menambah kehadiran</p>
+        <!-- Attendance List -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">📋 Daftar Kehadiran</h3>
+                <div class="text-sm text-gray-600">
+                    <div class="flex flex-wrap gap-2">
+                        <span>Total: <span id="totalCount" class="font-semibold text-emerald-600">0</span></span>
+                        <span class="text-green-600">✅ <span id="hadirCount">0</span></span>
+                        <span class="text-yellow-600">🤒 <span id="sakitCount">0</span></span>
+                        <span class="text-blue-600">📝 <span id="izinCount">0</span></span>
+                        <span class="text-red-600">❌ <span id="alphaCount">0</span></span>
                     </div>
                 </div>
             </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="text-left py-3 px-2 font-semibold text-gray-700">No</th>
+                            <th class="text-left py-3 px-2 font-semibold text-gray-700">Nama Lengkap</th>
+                            <th class="text-left py-3 px-2 font-semibold text-gray-700">Sekolah</th>
+                            <th class="text-left py-3 px-2 font-semibold text-gray-700">Kecamatan</th>
+                            <th class="text-left py-3 px-2 font-semibold text-gray-700">Status</th>
+                            <th class="text-left py-3 px-2 font-semibold text-gray-700">Waktu Input</th>
+                            <th class="text-left py-3 px-2 font-semibold text-gray-700">Metode</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceList">
+                        <!-- Attendance records will be added here -->
+                    </tbody>
+                </table>
+                
+                <div id="emptyState" class="text-center py-8 text-gray-500">
+                    <div class="text-4xl mb-2">📝</div>
+                    <p>Belum ada peserta yang hadir</p>
+                    <p class="text-sm">Scan barcode atau input manual untuk menambah kehadiran</p>
+                </div>
+            </div>
+        </div>
 
             <!-- Export Button -->
             <div class="mt-6 text-center">
-                <button id="exportBtn"
-                    class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                <button id="exportBtn" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                     📊 Export Daftar Hadir
                 </button>
             </div>
@@ -258,26 +228,20 @@
             <!-- Admin Login -->
             <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">🔐 Login Admin</h3>
-                <p class="text-sm text-gray-600 mb-4">Masuk sebagai admin untuk mengakses fitur input manual kehadiran
-                    dan manajemen data guru</p>
-
+                <p class="text-sm text-gray-600 mb-4">Masuk sebagai admin untuk mengakses fitur input manual kehadiran dan manajemen data guru</p>
+                
                 <div id="loginSection">
                     <form id="loginForm" class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Username Admin</label>
-                            <input type="text" id="adminUsername" required
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-                                placeholder="Masukkan username admin">
+                            <input type="text" id="adminUsername" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" placeholder="Masukkan username admin">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                            <input type="password" id="adminPassword" required
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-                                placeholder="Masukkan password">
+                            <input type="password" id="adminPassword" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" placeholder="Masukkan password">
                         </div>
                         <div class="flex gap-3">
-                            <button type="submit"
-                                class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                            <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold transition-colors">
                                 🔓 Login Admin
                             </button>
                         </div>
@@ -289,30 +253,26 @@
                     <div class="flex justify-between items-center mb-6">
                         <div>
                             <h4 class="text-lg font-semibold text-gray-800">👋 Selamat Datang, Admin!</h4>
-                            <p class="text-sm text-emerald-600 font-medium">Login sebagai: <span
-                                    id="loggedInUserDisplay"></span></p>
+                            <p class="text-sm text-emerald-600 font-medium">Login sebagai: <span id="loggedInUserDisplay"></span></p>
                         </div>
-                        <button id="logoutBtnMain"
-                            class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+                        <button id="logoutBtnMain" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
                             🚪 Logout
                         </button>
                     </div>
-
+                    
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="bg-emerald-50 p-4 rounded-lg">
                             <h5 class="font-semibold text-emerald-800 mb-2">📋 Fitur Kehadiran</h5>
                             <p class="text-sm text-emerald-700 mb-3">Kelola data kehadiran peserta KKG PAI</p>
-                            <button onclick="switchTab('attendance')"
-                                class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+                            <button onclick="switchTab('attendance')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
                                 Buka Kehadiran
                             </button>
                         </div>
-
+                        
                         <div class="bg-blue-50 p-4 rounded-lg">
                             <h5 class="font-semibold text-blue-800 mb-2">👥 Data Guru PAI</h5>
                             <p class="text-sm text-blue-700 mb-3">Kelola database guru PAI</p>
-                            <button onclick="switchTab('teacherData')"
-                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+                            <button onclick="switchTab('teacherData')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
                                 Buka Data Guru
                             </button>
                         </div>
@@ -337,12 +297,11 @@
             <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-semibold text-gray-800">👥 Data Guru PAI</h3>
-                    <button id="addTeacherBtn"
-                        class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+                    <button id="addTeacherBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
                         ➕ Tambah Guru
                     </button>
                 </div>
-
+                
                 <!-- Teacher Form -->
                 <div id="teacherFormSection" class="hidden mb-6 p-4 bg-gray-50 rounded-lg">
                     <h4 class="text-md font-semibold text-gray-800 mb-4">📝 Form Data Guru</h4>
@@ -352,38 +311,30 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
                                     <span class="text-red-500">*</span> Nama Lengkap
                                 </label>
-                                <input type="text" id="teacherName" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-                                    placeholder="Contoh: Ahmad Budi Santoso, S.Pd.I">
+                                <input type="text" id="teacherName" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" placeholder="Contoh: Ahmad Budi Santoso, S.Pd.I">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
                                     <span class="text-red-500">*</span> Nama Sekolah
                                 </label>
-                                <input type="text" id="teacherSchool" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-                                    placeholder="Contoh: SDN 01 Sukamaju">
+                                <input type="text" id="teacherSchool" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" placeholder="Contoh: SDN 01 Sukamaju">
                             </div>
                         </div>
-
+                        
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
                                     <span class="text-red-500">*</span> Kecamatan
                                 </label>
-                                <input type="text" id="teacherDistrict" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-                                    placeholder="Contoh: Sukamaju">
+                                <input type="text" id="teacherDistrict" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" placeholder="Contoh: Sukamaju">
                             </div>
                         </div>
 
                         <div class="flex gap-3">
-                            <button type="submit"
-                                class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                                 ✅ Simpan Data
                             </button>
-                            <button type="button" id="cancelTeacherBtn"
-                                class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                            <button type="button" id="cancelTeacherBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                                 ❌ Batal
                             </button>
                         </div>
@@ -406,7 +357,7 @@
                             <!-- Teacher records will be added here -->
                         </tbody>
                     </table>
-
+                    
                     <div id="teacherEmptyState" class="text-center py-8 text-gray-500">
                         <div class="text-4xl mb-2">👥</div>
                         <p>Belum ada data guru PAI</p>
@@ -416,8 +367,7 @@
 
                 <!-- Teacher Export Button -->
                 <div class="mt-6 text-center">
-                    <button id="exportTeacherBtn"
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                    <button id="exportTeacherBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                         📊 Export Data Guru
                     </button>
                 </div>
@@ -425,8 +375,7 @@
         </div>
 
         <!-- Barcode Modal -->
-        <div id="barcodeModal"
-            class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div id="barcodeModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
             <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-full overflow-y-auto">
                 <div class="p-6">
                     <div class="flex justify-between items-center mb-4">
@@ -435,30 +384,28 @@
                             ✕
                         </button>
                     </div>
-
+                    
                     <div class="text-center mb-4">
                         <div id="teacherInfo" class="bg-emerald-50 p-4 rounded-lg mb-4">
                             <h4 id="barcodeTeacherName" class="font-semibold text-emerald-800"></h4>
                             <p id="barcodeTeacherSchool" class="text-sm text-emerald-600"></p>
                             <p id="barcodeTeacherDistrict" class="text-sm text-emerald-600"></p>
                         </div>
-
-                        <div id="barcodeContainer" class="bg-white p-4 rounded-lg border-2 border-gray-200 mb-4">
-                            <canvas id="barcodeCanvas"></canvas>
+                        
+                        <div id="barcodeContainer" class="bg-white p-4 rounded-lg border-2 border-gray-200 mb-4 flex justify-center">
+                            <canvas id="barcodeCanvas" style="max-width: 100%; height: auto;"></canvas>
                         </div>
-
+                        
                         <p class="text-xs text-gray-500 mb-4">
-                            Scan barcode ini untuk mencatat kehadiran secara otomatis
+                            Scan barcode linear ini dengan scanner barcode untuk mencatat kehadiran secara otomatis
                         </p>
                     </div>
-
+                    
                     <div class="flex gap-3">
-                        <button id="downloadBarcode"
-                            class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                        <button id="downloadBarcode" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold transition-colors">
                             💾 Download Barcode
                         </button>
-                        <button id="printBarcode"
-                            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                        <button id="printBarcode" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition-colors">
                             🖨️ Print Barcode
                         </button>
                     </div>
@@ -492,15 +439,15 @@
         });
 
         // Tab functionality
-        document.getElementById('attendanceTab').addEventListener('click', function () {
+        document.getElementById('attendanceTab').addEventListener('click', function() {
             switchTab('attendance');
         });
 
-        document.getElementById('teacherDataTab').addEventListener('click', function () {
+        document.getElementById('teacherDataTab').addEventListener('click', function() {
             switchTab('teacherData');
         });
 
-        document.getElementById('adminTab').addEventListener('click', function () {
+        document.getElementById('adminTab').addEventListener('click', function() {
             switchTab('admin');
         });
 
@@ -546,66 +493,66 @@
         stopScanBtn.addEventListener('click', stopScanner);
 
         // Login functionality
-        document.getElementById('loginForm').addEventListener('submit', function (e) {
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
-
+            
             const username = document.getElementById('adminUsername').value.trim();
             const password = document.getElementById('adminPassword').value.trim();
             const loginError = document.getElementById('loginError');
-
+            
             if (adminCredentials[username] && adminCredentials[username] === password) {
                 isAdminLoggedIn = true;
                 currentAdmin = username;
-
+                
                 // Show admin dashboard, hide login form
                 document.getElementById('loginSection').classList.add('hidden');
                 document.getElementById('adminDashboard').classList.remove('hidden');
                 document.getElementById('loggedInUserDisplay').textContent = username;
-
+                
                 // Show manual entry section in attendance tab
                 document.getElementById('manualEntrySection').classList.remove('hidden');
                 document.getElementById('loggedInUser').textContent = username;
-
+                
                 // Show teacher data tab after login
                 document.getElementById('teacherDataTab').classList.remove('hidden');
-
+                
                 // Clear login form
                 document.getElementById('adminUsername').value = '';
                 document.getElementById('adminPassword').value = '';
                 loginError.classList.add('hidden');
-
+                
                 // Show success message
                 showLoginMessage('✅ Login berhasil! Selamat datang, ' + username, 'success');
             } else {
                 loginError.textContent = '❌ Username atau password salah. Silakan coba lagi.';
                 loginError.classList.remove('hidden');
-
+                
                 // Clear password field
                 document.getElementById('adminPassword').value = '';
             }
         });
 
         // Logout functionality
-        document.getElementById('logoutBtn').addEventListener('click', function () {
+        document.getElementById('logoutBtn').addEventListener('click', function() {
             performLogout();
         });
 
-        document.getElementById('logoutBtnMain').addEventListener('click', function () {
+        document.getElementById('logoutBtnMain').addEventListener('click', function() {
             performLogout();
         });
 
         function performLogout() {
             isAdminLoggedIn = false;
             currentAdmin = '';
-
+            
             // Show login section, hide admin dashboard and manual entry
             document.getElementById('loginSection').classList.remove('hidden');
             document.getElementById('adminDashboard').classList.add('hidden');
             document.getElementById('manualEntrySection').classList.add('hidden');
-
+            
             // Hide teacher data tab after logout
             document.getElementById('teacherDataTab').classList.add('hidden');
-
+            
             // Switch to attendance tab if currently on teacher data tab
             if (!document.getElementById('attendanceContent').classList.contains('hidden')) {
                 // Already on attendance tab, do nothing
@@ -613,23 +560,24 @@
                 // Currently on teacher data tab, switch to attendance
                 switchTab('attendance');
             }
-
+            
             // Clear any form data
             clearForm();
-
+            
             showLoginMessage('👋 Logout berhasil. Terima kasih!', 'info');
         }
 
         function showLoginMessage(message, type) {
             const messageDiv = document.createElement('div');
-            messageDiv.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${type === 'success' ? 'bg-green-100 text-green-800' :
-                type === 'error' ? 'bg-red-100 text-red-800' :
-                    'bg-blue-100 text-blue-800'
-                }`;
+            messageDiv.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-100 text-green-800' : 
+                type === 'error' ? 'bg-red-100 text-red-800' : 
+                'bg-blue-100 text-blue-800'
+            }`;
             messageDiv.textContent = message;
-
+            
             document.body.appendChild(messageDiv);
-
+            
             setTimeout(() => {
                 messageDiv.remove();
             }, 3000);
@@ -637,16 +585,16 @@
 
         async function startScanner() {
             try {
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment' }
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' } 
                 });
                 video.srcObject = stream;
-
+                
                 scannerPlaceholder.style.display = 'none';
                 video.style.display = 'block';
                 scannerOverlay.style.display = 'block';
                 stopScanBtn.classList.remove('hidden');
-
+                
                 scanning = true;
                 scanBarcode();
             } catch (err) {
@@ -659,7 +607,7 @@
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
             }
-
+            
             video.style.display = 'none';
             scannerOverlay.style.display = 'none';
             scannerPlaceholder.style.display = 'flex';
@@ -673,10 +621,10 @@
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
+            
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const code = jsQR(imageData.data, imageData.width, imageData.height);
-
+            
             if (code) {
                 processBarcode(code.data);
             } else {
@@ -685,32 +633,50 @@
         }
 
         function processBarcode(data) {
-            try {
-                // Try to parse as JSON (structured barcode)
-                const parsed = JSON.parse(data);
-                if (parsed.name && parsed.school) {
+            const barcodeText = data.trim();
+            
+            // Check if it's a PAI barcode format (PAI0001, PAI0002, etc.)
+            const paiMatch = barcodeText.match(/^PAI(\d{4})$/);
+            
+            if (paiMatch) {
+                const teacherId = parseInt(paiMatch[1]);
+                const teacher = teacherData.find(t => t.id === teacherId);
+                
+                if (teacher) {
                     addAttendance(
-                        parsed.name,
-                        parsed.school,
+                        teacher.name, 
+                        teacher.school, 
                         'Barcode',
-                        parsed.district || '',
-                        parsed.notes || ''
+                        teacher.district,
+                        '',
+                        'Hadir'
                     );
-                    showScanResult(`✅ Berhasil scan: ${parsed.name} dari ${parsed.school}`, 'success');
+                    showScanResult(`✅ Berhasil scan: ${teacher.name} dari ${teacher.school}`, 'success');
                 } else {
-                    throw new Error('Invalid format');
+                    showScanResult(`❌ Guru dengan ID ${teacherId} tidak ditemukan dalam database`, 'error');
                 }
-            } catch (e) {
-                // Treat as simple text (name only)
-                const name = data.trim();
-                if (name) {
-                    addAttendance(name, 'Tidak diketahui', 'Barcode', '', '', '');
-                    showScanResult(`✅ Berhasil scan: ${name}`, 'success');
+            } else {
+                // Try to find teacher by name (fallback for other barcode formats)
+                const foundTeacher = teacherData.find(t => 
+                    t.name.toLowerCase().includes(barcodeText.toLowerCase()) ||
+                    barcodeText.toLowerCase().includes(t.name.toLowerCase())
+                );
+                
+                if (foundTeacher) {
+                    addAttendance(
+                        foundTeacher.name, 
+                        foundTeacher.school, 
+                        'Barcode',
+                        foundTeacher.district,
+                        '',
+                        'Hadir'
+                    );
+                    showScanResult(`✅ Berhasil scan: ${foundTeacher.name} dari ${foundTeacher.school}`, 'success');
                 } else {
-                    showScanResult('❌ Barcode tidak valid atau kosong', 'error');
+                    showScanResult(`❌ Barcode "${barcodeText}" tidak dikenali. Pastikan barcode valid dan guru terdaftar.`, 'error');
                 }
             }
-
+            
             // Continue scanning after 2 seconds
             setTimeout(() => {
                 if (scanning) {
@@ -726,9 +692,9 @@
         }
 
         // Name selection change handler
-        document.getElementById('manualName').addEventListener('change', function () {
+        document.getElementById('manualName').addEventListener('change', function() {
             const selectedTeacherId = this.value;
-
+            
             if (selectedTeacherId) {
                 const teacher = teacherData.find(t => t.id == selectedTeacherId);
                 if (teacher) {
@@ -743,24 +709,24 @@
         });
 
         // Manual form
-        document.getElementById('manualForm').addEventListener('submit', function (e) {
+        document.getElementById('manualForm').addEventListener('submit', function(e) {
             e.preventDefault();
-
+            
             // Check if admin is logged in
             if (!isAdminLoggedIn) {
                 alert('❌ Akses ditolak! Silakan login sebagai admin terlebih dahulu.');
                 return;
             }
-
+            
             const selectedTeacherId = document.getElementById('manualName').value;
             const status = document.getElementById('attendanceStatus').value.trim();
-
+            
             if (selectedTeacherId && status) {
                 const teacher = teacherData.find(t => t.id == selectedTeacherId);
                 if (teacher) {
                     addAttendance(teacher.name, teacher.school, 'Manual', teacher.district, '', status);
                     clearForm();
-
+                    
                     // Show success message
                     const form = this;
                     const submitBtn = form.querySelector('button[type="submit"]');
@@ -787,11 +753,11 @@
 
         function addAttendance(name, school, method, district = '', notes = '', status = 'Hadir') {
             // Check for duplicates
-            const existing = attendanceData.find(item =>
-                item.name.toLowerCase() === name.toLowerCase() &&
+            const existing = attendanceData.find(item => 
+                item.name.toLowerCase() === name.toLowerCase() && 
                 item.school.toLowerCase() === school.toLowerCase()
             );
-
+            
             if (existing) {
                 if (method === 'Barcode') {
                     showScanResult(`⚠️ ${name} sudah tercatat hadir sebelumnya`, 'error');
@@ -811,7 +777,7 @@
                 time: new Date().toLocaleTimeString('id-ID'),
                 method: method
             };
-
+            
             attendanceData.push(attendance);
             updateAttendanceList();
         }
@@ -820,7 +786,7 @@
             const tbody = document.getElementById('attendanceList');
             const emptyState = document.getElementById('emptyState');
             const totalCount = document.getElementById('totalCount');
-
+            
             if (attendanceData.length === 0) {
                 tbody.innerHTML = '';
                 emptyState.style.display = 'block';
@@ -831,21 +797,21 @@
                 document.getElementById('alphaCount').textContent = '0';
                 return;
             }
-
+            
             emptyState.style.display = 'none';
             totalCount.textContent = attendanceData.length;
-
+            
             // Update status counts
             const hadirCount = attendanceData.filter(item => item.status === 'Hadir').length;
             const sakitCount = attendanceData.filter(item => item.status === 'Sakit').length;
             const izinCount = attendanceData.filter(item => item.status === 'Izin').length;
             const alphaCount = attendanceData.filter(item => item.status === 'Alpha').length;
-
+            
             document.getElementById('hadirCount').textContent = hadirCount;
             document.getElementById('sakitCount').textContent = sakitCount;
             document.getElementById('izinCount').textContent = izinCount;
             document.getElementById('alphaCount').textContent = alphaCount;
-
+            
             tbody.innerHTML = attendanceData.map((item, index) => `
                 <tr class="border-b border-gray-100 hover:bg-gray-50">
                     <td class="py-3 px-2 text-sm font-medium">${index + 1}</td>
@@ -855,11 +821,12 @@
                     <td class="py-3 px-2 text-gray-700 text-sm">${item.school}</td>
                     <td class="py-3 px-2 text-gray-700 text-sm">${item.district || '-'}</td>
                     <td class="py-3 px-2">
-                        <span class="px-2 py-1 text-xs rounded-full ${item.status === 'Hadir' ? 'bg-green-100 text-green-800' :
-                    item.status === 'Sakit' ? 'bg-yellow-100 text-yellow-800' :
-                        item.status === 'Izin' ? 'bg-blue-100 text-blue-800' :
+                        <span class="px-2 py-1 text-xs rounded-full ${
+                            item.status === 'Hadir' ? 'bg-green-100 text-green-800' :
+                            item.status === 'Sakit' ? 'bg-yellow-100 text-yellow-800' :
+                            item.status === 'Izin' ? 'bg-blue-100 text-blue-800' :
                             'bg-red-100 text-red-800'
-                }">
+                        }">
                             ${item.status === 'Hadir' ? '✅' : item.status === 'Sakit' ? '🤒' : item.status === 'Izin' ? '📝' : '❌'} ${item.status}
                         </span>
                     </td>
@@ -874,7 +841,7 @@
         }
 
         // Export functionality
-        document.getElementById('exportBtn').addEventListener('click', function () {
+        document.getElementById('exportBtn').addEventListener('click', function() {
             if (attendanceData.length === 0) {
                 alert('Tidak ada data kehadiran untuk diekspor');
                 return;
@@ -889,11 +856,11 @@
             csvContent += `Admin Export: ${currentAdmin || 'Sistem'}\n`;
             csvContent += `Total Peserta: ${attendanceData.length} orang\n\n`;
             csvContent += 'No,Nama Lengkap,Sekolah,Kecamatan,Status Kehadiran,Waktu Input,Metode Input,Catatan\n';
-
+            
             attendanceData.forEach((item, index) => {
                 csvContent += `${index + 1},"${item.name}","${item.school}","${item.district || '-'}","${item.status || 'Hadir'}","${item.time}","${item.method}","${item.notes || '-'}"\n`;
             });
-
+            
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
@@ -903,7 +870,7 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-
+            
             // Show success message
             const btn = this;
             const originalHTML = btn.innerHTML;
@@ -916,32 +883,32 @@
         });
 
         // Teacher Data Management
-        document.getElementById('addTeacherBtn').addEventListener('click', function () {
+        document.getElementById('addTeacherBtn').addEventListener('click', function() {
             document.getElementById('teacherFormSection').classList.remove('hidden');
             editingTeacherId = null;
             clearTeacherForm();
         });
 
-        document.getElementById('cancelTeacherBtn').addEventListener('click', function () {
+        document.getElementById('cancelTeacherBtn').addEventListener('click', function() {
             document.getElementById('teacherFormSection').classList.add('hidden');
             editingTeacherId = null;
             clearTeacherForm();
         });
 
-        document.getElementById('teacherForm').addEventListener('submit', function (e) {
+        document.getElementById('teacherForm').addEventListener('submit', function(e) {
             e.preventDefault();
-
+            
             const name = document.getElementById('teacherName').value.trim();
             const school = document.getElementById('teacherSchool').value.trim();
             const district = document.getElementById('teacherDistrict').value.trim();
-
+            
             if (name && school && district) {
                 if (editingTeacherId) {
                     updateTeacher(editingTeacherId, name, school, district);
                 } else {
                     addTeacher(name, school, district);
                 }
-
+                
                 document.getElementById('teacherFormSection').classList.add('hidden');
                 clearTeacherForm();
                 editingTeacherId = null;
@@ -950,11 +917,11 @@
 
         function addTeacher(name, school, district) {
             // Check for duplicates
-            const existing = teacherData.find(item =>
-                item.name.toLowerCase() === name.toLowerCase() &&
+            const existing = teacherData.find(item => 
+                item.name.toLowerCase() === name.toLowerCase() && 
                 item.school.toLowerCase() === school.toLowerCase()
             );
-
+            
             if (existing) {
                 alert(`⚠️ ${name} dari ${school} sudah ada dalam database`);
                 return;
@@ -966,10 +933,10 @@
                 school: school,
                 district: district
             };
-
+            
             teacherData.push(teacher);
             updateTeacherList();
-
+            
             // Show success message
             showMessage('✅ Data guru berhasil ditambahkan!', 'success');
         }
@@ -1002,7 +969,7 @@
                 document.getElementById('teacherName').value = teacher.name;
                 document.getElementById('teacherSchool').value = teacher.school;
                 document.getElementById('teacherDistrict').value = teacher.district;
-
+                
                 editingTeacherId = id;
                 document.getElementById('teacherFormSection').classList.remove('hidden');
             }
@@ -1017,16 +984,16 @@
         function updateTeacherList() {
             const tbody = document.getElementById('teacherList');
             const emptyState = document.getElementById('teacherEmptyState');
-
+            
             if (teacherData.length === 0) {
                 tbody.innerHTML = '';
                 emptyState.style.display = 'block';
                 updateTeacherSelect();
                 return;
             }
-
+            
             emptyState.style.display = 'none';
-
+            
             tbody.innerHTML = teacherData.map((item, index) => `
                 <tr class="border-b border-gray-100 hover:bg-gray-50">
                     <td class="py-3 px-2 text-sm font-medium">${index + 1}</td>
@@ -1049,7 +1016,7 @@
                     </td>
                 </tr>
             `).join('');
-
+            
             // Update teacher select dropdown
             updateTeacherSelect();
         }
@@ -1057,10 +1024,10 @@
         function updateTeacherSelect() {
             const select = document.getElementById('manualName');
             const currentValue = select.value;
-
+            
             // Clear existing options except the first one
             select.innerHTML = '<option value="">Pilih nama guru...</option>';
-
+            
             // Add teacher options
             teacherData.forEach(teacher => {
                 const option = document.createElement('option');
@@ -1068,7 +1035,7 @@
                 option.textContent = teacher.name;
                 select.appendChild(option);
             });
-
+            
             // Restore selected value if it still exists
             if (currentValue && teacherData.find(t => t.id == currentValue)) {
                 select.value = currentValue;
@@ -1076,7 +1043,7 @@
         }
 
         // Export teacher data
-        document.getElementById('exportTeacherBtn').addEventListener('click', function () {
+        document.getElementById('exportTeacherBtn').addEventListener('click', function() {
             if (teacherData.length === 0) {
                 alert('Tidak ada data guru untuk diekspor');
                 return;
@@ -1091,11 +1058,11 @@
             csvContent += `Admin Export: ${currentAdmin || 'Sistem'}\n`;
             csvContent += `Total Guru: ${teacherData.length} orang\n\n`;
             csvContent += 'No,Nama Lengkap,Sekolah,Kecamatan\n';
-
+            
             teacherData.forEach((item, index) => {
                 csvContent += `${index + 1},"${item.name}","${item.school}","${item.district}"\n`;
             });
-
+            
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
@@ -1105,7 +1072,7 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-
+            
             // Show success message
             const btn = this;
             const originalHTML = btn.innerHTML;
@@ -1119,14 +1086,15 @@
 
         function showMessage(message, type) {
             const messageDiv = document.createElement('div');
-            messageDiv.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${type === 'success' ? 'bg-green-100 text-green-800' :
-                type === 'error' ? 'bg-red-100 text-red-800' :
-                    'bg-blue-100 text-blue-800'
-                }`;
+            messageDiv.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-100 text-green-800' : 
+                type === 'error' ? 'bg-red-100 text-red-800' : 
+                'bg-blue-100 text-blue-800'
+            }`;
             messageDiv.textContent = message;
-
+            
             document.body.appendChild(messageDiv);
-
+            
             setTimeout(() => {
                 messageDiv.remove();
             }, 3000);
@@ -1141,129 +1109,125 @@
 
             // Show modal
             document.getElementById('barcodeModal').classList.remove('hidden');
-
+            
             // Update teacher info
             document.getElementById('barcodeTeacherName').textContent = teacher.name;
             document.getElementById('barcodeTeacherSchool').textContent = teacher.school;
             document.getElementById('barcodeTeacherDistrict').textContent = teacher.district;
-
-            // Create barcode data
-            const barcodeData = {
+            
+            // Create barcode data - use teacher ID for simpler barcode
+            const barcodeText = `PAI${teacher.id.toString().padStart(4, '0')}`;
+            
+            currentBarcodeData = {
+                id: teacher.id,
                 name: teacher.name,
                 school: teacher.school,
                 district: teacher.district,
+                barcodeText: barcodeText,
                 timestamp: new Date().toISOString()
             };
-
-            currentBarcodeData = barcodeData;
-
-            // Generate QR code
+            
+            // Generate barcode
             const canvas = document.getElementById('barcodeCanvas');
-            const ctx = canvas.getContext('2d');
-
-            // Clear and set canvas size first
-            canvas.width = 200;
-            canvas.height = 200;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Set white background
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            console.log('Generating QR code for:', teacher.name);
-            console.log('QR data:', JSON.stringify(barcodeData));
-
-            // Check if QRCode library is loaded
-            if (typeof QRCode === 'undefined') {
-                console.error('QRCode library not loaded');
-                createFallbackBarcode(ctx, teacher);
+            
+            // Set canvas size for barcode
+            canvas.width = 300;
+            canvas.height = 120;
+            
+            console.log('Generating barcode for:', teacher.name);
+            console.log('Barcode text:', barcodeText);
+            
+            // Check if JsBarcode library is loaded
+            if (typeof JsBarcode === 'undefined') {
+                console.error('JsBarcode library not loaded');
+                createFallbackBarcode(canvas.getContext('2d'), teacher);
                 return;
             }
-
+            
             try {
-                // Generate QR code with simpler options
-                QRCode.toCanvas(canvas, JSON.stringify(barcodeData), {
-                    width: 200,
-                    margin: 2,
-                    errorCorrectionLevel: 'M'
-                }, function (error) {
-                    if (error) {
-                        console.error('QR Code generation error:', error);
-                        createFallbackBarcode(ctx, teacher);
-                    } else {
-                        console.log('QR code generated successfully');
-                    }
+                // Generate Code128 barcode
+                JsBarcode(canvas, barcodeText, {
+                    format: "CODE128",
+                    width: 2,
+                    height: 80,
+                    displayValue: true,
+                    fontSize: 14,
+                    textMargin: 5,
+                    background: "#ffffff",
+                    lineColor: "#000000"
                 });
+                console.log('Barcode generated successfully');
             } catch (e) {
-                console.error('QR Code generation exception:', e);
-                createFallbackBarcode(ctx, teacher);
+                console.error('Barcode generation exception:', e);
+                createFallbackBarcode(canvas.getContext('2d'), teacher);
             }
         }
 
         function createFallbackBarcode(ctx, teacher) {
             // Create a simple visual barcode as fallback
-            ctx.fillStyle = '#f3f4f6';
-            ctx.fillRect(0, 0, 200, 200);
-
-            // Draw border
-            ctx.strokeStyle = '#10b981';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(5, 5, 190, 190);
-
-            // Draw simple pattern
+            const canvas = ctx.canvas;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw barcode-like pattern
             ctx.fillStyle = '#000000';
-            for (let i = 0; i < 10; i++) {
-                for (let j = 0; j < 10; j++) {
-                    if ((i + j) % 2 === 0) {
-                        ctx.fillRect(20 + i * 16, 20 + j * 16, 8, 8);
+            const barcodeText = `PAI${teacher.id.toString().padStart(4, '0')}`;
+            
+            // Draw vertical lines to simulate barcode
+            let x = 20;
+            for (let i = 0; i < barcodeText.length; i++) {
+                const char = barcodeText.charCodeAt(i);
+                for (let j = 0; j < 8; j++) {
+                    if ((char >> j) & 1) {
+                        ctx.fillRect(x, 20, 3, 60);
                     }
+                    x += 4;
                 }
+                x += 8; // Space between characters
             }
-
-            // Add text
-            ctx.fillStyle = '#374151';
-            ctx.font = 'bold 12px Arial';
+            
+            // Add text below barcode
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 14px monospace';
             ctx.textAlign = 'center';
-            ctx.fillText('BARCODE KEHADIRAN', 100, 180);
-            ctx.font = '10px Arial';
-            ctx.fillText(teacher.name.substring(0, 20), 100, 195);
-
-            showMessage('⚠️ QR Code library error, menggunakan barcode alternatif', 'error');
+            ctx.fillText(barcodeText, canvas.width / 2, 100);
+            
+            showMessage('⚠️ Barcode library error, menggunakan barcode alternatif', 'error');
         }
 
         // Modal close functionality
-        document.getElementById('closeBarcodeModal').addEventListener('click', function () {
+        document.getElementById('closeBarcodeModal').addEventListener('click', function() {
             document.getElementById('barcodeModal').classList.add('hidden');
         });
 
         // Close modal when clicking outside
-        document.getElementById('barcodeModal').addEventListener('click', function (e) {
+        document.getElementById('barcodeModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 this.classList.add('hidden');
             }
         });
 
         // Download barcode
-        document.getElementById('downloadBarcode').addEventListener('click', function () {
+        document.getElementById('downloadBarcode').addEventListener('click', function() {
             if (!currentBarcodeData) return;
-
+            
             const canvas = document.getElementById('barcodeCanvas');
             const link = document.createElement('a');
             link.download = `Barcode_${currentBarcodeData.name.replace(/[^a-zA-Z0-9]/g, '_')}.png`;
             link.href = canvas.toDataURL();
             link.click();
-
+            
             showMessage('✅ Barcode berhasil didownload!', 'success');
         });
 
         // Print barcode
-        document.getElementById('printBarcode').addEventListener('click', function () {
+        document.getElementById('printBarcode').addEventListener('click', function() {
             if (!currentBarcodeData) return;
-
+            
             const canvas = document.getElementById('barcodeCanvas');
             const printWindow = window.open('', '_blank');
             const img = canvas.toDataURL();
-
+            
             printWindow.document.write(`
                 <html>
                 <head>
@@ -1317,26 +1281,26 @@
                     <div class="footer">
                         <p>Scan barcode ini untuk mencatat kehadiran secara otomatis</p>
                         <p>Dibuat pada: ${new Date().toLocaleDateString('id-ID', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            })}</p>
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}</p>
                     </div>
                 </body>
                 </html>
             `);
-
+            
             printWindow.document.close();
             printWindow.focus();
-
+            
             setTimeout(() => {
                 printWindow.print();
                 printWindow.close();
             }, 250);
-
+            
             showMessage('✅ Barcode siap untuk dicetak!', 'success');
         });
 
@@ -1350,7 +1314,7 @@
                     { id: 4, name: "Fatimah Zahra, S.Ag", school: "SDN 01 Sejahtera", district: "Sejahtera" },
                     { id: 5, name: "Abdul Rahman, S.Pd.I", school: "SDN 02 Sejahtera", district: "Sejahtera" }
                 ];
-
+                
                 teacherData = sampleTeachers;
                 updateTeacherList();
             }
@@ -1361,7 +1325,5 @@
         updateTeacherList();
         initializeSampleData();
     </script>
-    <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'98bbdfa226ef5fd8',t:'MTc1OTk5MTg5MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
-</body>
-
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98bbeb22f1389cf6',t:'MTc1OTk5MjM2MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
