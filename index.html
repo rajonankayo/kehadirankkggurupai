@@ -590,27 +590,109 @@
                     throw new Error('Browser tidak mendukung akses kamera');
                 }
 
-                // Try different camera configurations
-                let constraints = { video: { facingMode: 'environment' } };
+                // Show loading state
+                scannerPlaceholder.innerHTML = `
+                    <div class="text-center">
+                        <div class="text-4xl mb-4">⏳</div>
+                        <p class="text-gray-600">Mengakses kamera...</p>
+                    </div>
+                `;
+
+                // Multiple fallback strategies for mobile compatibility
+                const cameraConfigs = [
+                    // Try rear camera first (best for scanning)
+                    { 
+                        video: { 
+                            facingMode: { exact: 'environment' },
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 }
+                        } 
+                    },
+                    // Fallback to any rear camera
+                    { 
+                        video: { 
+                            facingMode: 'environment',
+                            width: { ideal: 640 },
+                            height: { ideal: 480 }
+                        } 
+                    },
+                    // Try front camera
+                    { 
+                        video: { 
+                            facingMode: 'user',
+                            width: { ideal: 640 },
+                            height: { ideal: 480 }
+                        } 
+                    },
+                    // Basic video without specific facing mode
+                    { 
+                        video: { 
+                            width: { ideal: 640 },
+                            height: { ideal: 480 }
+                        } 
+                    },
+                    // Minimal constraints as last resort
+                    { video: true }
+                ];
+
+                let cameraError = null;
                 
-                try {
-                    stream = await navigator.mediaDevices.getUserMedia(constraints);
-                } catch (err) {
-                    console.log('Fallback to any camera:', err);
-                    // Fallback to any available camera
-                    constraints = { video: true };
-                    stream = await navigator.mediaDevices.getUserMedia(constraints);
+                for (let i = 0; i < cameraConfigs.length; i++) {
+                    try {
+                        console.log(`Trying camera config ${i + 1}:`, cameraConfigs[i]);
+                        stream = await navigator.mediaDevices.getUserMedia(cameraConfigs[i]);
+                        console.log('Camera access successful with config:', i + 1);
+                        break;
+                    } catch (err) {
+                        console.log(`Camera config ${i + 1} failed:`, err.name, err.message);
+                        cameraError = err;
+                        
+                        // If this is the last config, throw the error
+                        if (i === cameraConfigs.length - 1) {
+                            throw err;
+                        }
+                    }
+                }
+
+                if (!stream) {
+                    throw new Error('Tidak dapat mengakses kamera dengan konfigurasi apapun');
                 }
                 
                 video.srcObject = stream;
                 
-                // Wait for video to be ready
-                await new Promise((resolve) => {
-                    video.onloadedmetadata = () => {
-                        video.play().then(resolve).catch(resolve);
+                // Enhanced video ready detection
+                await new Promise((resolve, reject) => {
+                    let attempts = 0;
+                    const maxAttempts = 10;
+                    
+                    const checkVideo = () => {
+                        attempts++;
+                        
+                        if (video.readyState >= 2) { // HAVE_CURRENT_DATA
+                            resolve();
+                        } else if (attempts >= maxAttempts) {
+                            reject(new Error('Video tidak dapat dimuat setelah beberapa percobaan'));
+                        } else {
+                            setTimeout(checkVideo, 200);
+                        }
                     };
+                    
+                    video.onloadedmetadata = () => {
+                        video.play()
+                            .then(() => {
+                                console.log('Video playing successfully');
+                                setTimeout(checkVideo, 100);
+                            })
+                            .catch(reject);
+                    };
+                    
+                    video.onerror = reject;
+                    
+                    // Start checking immediately in case metadata is already loaded
+                    setTimeout(checkVideo, 100);
                 });
                 
+                // Show camera view
                 scannerPlaceholder.style.display = 'none';
                 video.style.display = 'block';
                 scannerOverlay.style.display = 'block';
@@ -618,25 +700,59 @@
                 
                 scanning = true;
                 
-                // Wait a bit before starting scan to ensure video is ready
+                // Show success message
+                showScanResult('✅ Kamera berhasil diakses! Arahkan ke barcode untuk scan.', 'success');
+                
+                // Start scanning after ensuring video is stable
                 setTimeout(() => {
-                    if (scanning) {
+                    if (scanning && video.videoWidth > 0 && video.videoHeight > 0) {
+                        console.log('Starting barcode scan, video dimensions:', video.videoWidth, 'x', video.videoHeight);
                         scanBarcode();
+                    } else if (scanning) {
+                        console.log('Video not ready yet, retrying...');
+                        setTimeout(() => {
+                            if (scanning) scanBarcode();
+                        }, 1000);
                     }
-                }, 500);
+                }, 800);
                 
             } catch (err) {
-                console.error('Camera error:', err);
+                console.error('Camera error details:', {
+                    name: err.name,
+                    message: err.message,
+                    stack: err.stack
+                });
+                
+                // Reset placeholder
+                scannerPlaceholder.innerHTML = `
+                    <div class="text-center">
+                        <div class="text-6xl mb-4">📷</div>
+                        <button id="startScanBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                            Mulai Scan Barcode
+                        </button>
+                    </div>
+                `;
+                
+                // Re-attach event listener
+                document.getElementById('startScanBtn').addEventListener('click', startScanner);
+                
                 let errorMessage = '❌ Tidak dapat mengakses kamera. ';
                 
-                if (err.name === 'NotAllowedError') {
-                    errorMessage += 'Izin kamera ditolak. Silakan refresh halaman dan izinkan akses kamera.';
-                } else if (err.name === 'NotFoundError') {
-                    errorMessage += 'Kamera tidak ditemukan pada perangkat ini.';
-                } else if (err.name === 'NotSupportedError') {
-                    errorMessage += 'Browser tidak mendukung akses kamera.';
+                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    errorMessage += 'Izin kamera ditolak. Langkah-langkah:\n';
+                    errorMessage += '1. Refresh halaman ini\n';
+                    errorMessage += '2. Klik "Izinkan" saat browser meminta akses kamera\n';
+                    errorMessage += '3. Periksa pengaturan browser untuk memastikan kamera tidak diblokir';
+                } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                    errorMessage += 'Kamera tidak ditemukan. Pastikan perangkat memiliki kamera yang berfungsi.';
+                } else if (err.name === 'NotSupportedError' || err.name === 'NotSupportedError') {
+                    errorMessage += 'Browser tidak mendukung akses kamera. Coba gunakan Chrome, Firefox, atau Safari terbaru.';
+                } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+                    errorMessage += 'Kamera sedang digunakan aplikasi lain. Tutup aplikasi kamera lain dan coba lagi.';
+                } else if (err.name === 'OverconstrainedError' || err.name === 'ConstraintNotSatisfiedError') {
+                    errorMessage += 'Konfigurasi kamera tidak didukung. Perangkat mungkin tidak memiliki kamera belakang.';
                 } else {
-                    errorMessage += 'Pastikan kamera tidak digunakan aplikasi lain dan refresh halaman.';
+                    errorMessage += `Error: ${err.message}. Coba refresh halaman atau gunakan browser lain.`;
                 }
                 
                 showScanResult(errorMessage, 'error');
@@ -1386,5 +1502,5 @@
         updateTeacherList();
         initializeSampleData();
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98bbf01be4929cf6',t:'MTc1OTk5MjU2NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98bbf91202459cf6',t:'MTc1OTk5MjkzMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
