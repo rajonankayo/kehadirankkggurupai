@@ -772,81 +772,115 @@ function doGet(e) {
             const date = new Date().toLocaleDateString('id-ID');
             currentQRCode = `ABSEN_KKG_${date}_${timestamp}`;
 
-            const canvas = document.getElementById('qrCanvas');
-            const ctx = canvas.getContext('2d');
+            // Clear previous QR code
+            const qrDisplay = document.getElementById('qrCodeDisplay');
+            qrDisplay.innerHTML = '<div class="w-48 h-48 mx-auto bg-white rounded-lg flex items-center justify-center border-2 border-gray-200"><div class="text-gray-500">Generating QR...</div></div>';
 
-            // Check if QRCode library is available
-            if (typeof QRCode !== 'undefined') {
-                // Generate real QR code using QRCode.js library
-                QRCode.toCanvas(canvas, currentQRCode, {
-                    width: 192,
-                    height: 192,
-                    margin: 2,
-                    color: {
-                        dark: '#000000',
-                        light: '#FFFFFF'
-                    },
-                    errorCorrectionLevel: 'M'
-                }, function (error) {
-                    if (error) {
-                        console.error('QR Code generation error:', error);
-                        drawFallbackQR(ctx);
-                    } else {
-                        console.log('QR Code generated successfully');
-                    }
-                });
-            } else {
-                // Fallback if library not loaded
-                console.log('QRCode library not available, using fallback');
-                drawFallbackQR(ctx);
-            }
+            // Generate QR code using online API
+            const qrSize = 200;
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${qrSize}x${qrSize}&data=${encodeURIComponent(currentQRCode)}&format=png&margin=10`;
+
+            // Create image element
+            const qrImage = document.createElement('img');
+            qrImage.src = qrUrl;
+            qrImage.alt = 'QR Code Absensi';
+            qrImage.className = 'w-48 h-48 mx-auto rounded-lg border-2 border-gray-200';
+            qrImage.style.imageRendering = 'pixelated'; // Keep QR code crisp
+
+            qrImage.onload = function () {
+                qrDisplay.innerHTML = '';
+                qrDisplay.appendChild(qrImage);
+                console.log('QR Code generated successfully');
+            };
+
+            qrImage.onerror = function () {
+                console.log('Failed to load QR from API, using SVG fallback');
+                generateSVGQRCode();
+            };
 
             const validTime = new Date();
             validTime.setHours(validTime.getHours() + 1);
             document.getElementById('qrValidTime').textContent = validTime.toLocaleTimeString('id-ID');
         }
 
-        function drawFallbackQR(ctx) {
-            // Clear canvas
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, 192, 192);
+        function generateSVGQRCode() {
+            // Fallback SVG QR code generator
+            const qrDisplay = document.getElementById('qrCodeDisplay');
+            const size = 192;
+            const modules = 25; // QR code grid size
+            const moduleSize = size / modules;
 
-            // Draw a simple pattern that looks like QR code
-            ctx.fillStyle = 'black';
+            // Simple QR code pattern generator
+            const qrData = generateQRPattern(modules);
 
-            // Draw corner squares
-            ctx.fillRect(10, 10, 30, 30);
-            ctx.fillRect(152, 10, 30, 30);
-            ctx.fillRect(10, 152, 30, 30);
+            let svgContent = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg" class="border-2 border-gray-200 rounded-lg">`;
+            svgContent += `<rect width="${size}" height="${size}" fill="white"/>`;
 
-            // Draw inner squares
-            ctx.fillStyle = 'white';
-            ctx.fillRect(15, 15, 20, 20);
-            ctx.fillRect(157, 15, 20, 20);
-            ctx.fillRect(15, 157, 20, 20);
-
-            // Draw center squares
-            ctx.fillStyle = 'black';
-            ctx.fillRect(20, 20, 10, 10);
-            ctx.fillRect(162, 20, 10, 10);
-            ctx.fillRect(20, 162, 10, 10);
-
-            // Draw some random pattern
-            ctx.fillStyle = 'black';
-            for (let i = 50; i < 142; i += 10) {
-                for (let j = 50; j < 142; j += 10) {
-                    if (Math.random() > 0.5) {
-                        ctx.fillRect(i, j, 8, 8);
+            for (let row = 0; row < modules; row++) {
+                for (let col = 0; col < modules; col++) {
+                    if (qrData[row][col]) {
+                        const x = col * moduleSize;
+                        const y = row * moduleSize;
+                        svgContent += `<rect x="${x}" y="${y}" width="${moduleSize}" height="${moduleSize}" fill="black"/>`;
                     }
                 }
             }
 
-            // Add text
-            ctx.fillStyle = 'black';
-            ctx.font = '10px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('QR ABSENSI', 96, 100);
-            ctx.fillText('KKG PAI', 96, 115);
+            svgContent += '</svg>';
+            qrDisplay.innerHTML = svgContent;
+        }
+
+        function generateQRPattern(size) {
+            // Create a simple QR-like pattern
+            const pattern = Array(size).fill().map(() => Array(size).fill(false));
+
+            // Add finder patterns (corner squares)
+            addFinderPattern(pattern, 0, 0);
+            addFinderPattern(pattern, 0, size - 7);
+            addFinderPattern(pattern, size - 7, 0);
+
+            // Add timing patterns
+            for (let i = 8; i < size - 8; i++) {
+                pattern[6][i] = i % 2 === 0;
+                pattern[i][6] = i % 2 === 0;
+            }
+
+            // Add some data pattern
+            for (let row = 9; row < size - 9; row++) {
+                for (let col = 9; col < size - 9; col++) {
+                    if (!pattern[row][col]) {
+                        // Create a pseudo-random pattern based on position and current QR code
+                        const hash = (row * 31 + col * 17 + currentQRCode.length) % 100;
+                        pattern[row][col] = hash > 50;
+                    }
+                }
+            }
+
+            return pattern;
+        }
+
+        function addFinderPattern(pattern, startRow, startCol) {
+            // 7x7 finder pattern
+            for (let row = 0; row < 7; row++) {
+                for (let col = 0; col < 7; col++) {
+                    const r = startRow + row;
+                    const c = startCol + col;
+                    if (r < pattern.length && c < pattern[0].length) {
+                        // Outer border
+                        if (row === 0 || row === 6 || col === 0 || col === 6) {
+                            pattern[r][c] = true;
+                        }
+                        // Inner square
+                        else if (row >= 2 && row <= 4 && col >= 2 && col <= 4) {
+                            pattern[r][c] = true;
+                        }
+                        // White space
+                        else {
+                            pattern[r][c] = false;
+                        }
+                    }
+                }
+            }
         }
 
         // Attendance recording
@@ -1141,7 +1175,7 @@ function doGet(e) {
             loadDataFromGoogleSheets();
         }
     </script>
-    <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'98c270b2d17d9faa',t:'MTc2MDA2MDc0Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
+    <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'98c2792f31ee9faa',t:'MTc2MDA2MTA5NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
 </body>
 
 </html>
