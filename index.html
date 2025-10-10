@@ -8,6 +8,11 @@
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- DataTables CSS and JS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/dataTables.tailwindcss.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.tailwindcss.min.js"></script>
     <style>
         body {
             box-sizing: border-box;
@@ -37,6 +42,66 @@
         }
         .admin-tab-content[style*="display: none"] {
             display: none !important;
+        }
+        
+        /* DataTables custom styling */
+        .dataTables_wrapper {
+            font-family: inherit;
+        }
+        
+        .dataTables_filter input {
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            margin-left: 0.5rem;
+        }
+        
+        .dataTables_length select {
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            padding: 0.25rem 0.5rem;
+            margin: 0 0.5rem;
+        }
+        
+        .dataTables_info {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        
+        .dataTables_paginate .paginate_button {
+            padding: 0.5rem 0.75rem;
+            margin: 0 0.125rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            background: white;
+            color: #374151;
+            text-decoration: none;
+        }
+        
+        .dataTables_paginate .paginate_button:hover {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+        }
+        
+        .dataTables_paginate .paginate_button.current {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+        }
+        
+        .dataTables_paginate .paginate_button.disabled {
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+        
+        table.dataTable thead th {
+            border-bottom: 2px solid #e5e7eb;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        table.dataTable tbody tr:hover {
+            background-color: #f9fafb;
         }
     </style>
 </head>
@@ -377,7 +442,7 @@ function doGet(e) {
                         </div>
                     </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full bg-white border border-gray-200 rounded-lg">
+                        <table id="attendanceDataTable" class="w-full bg-white border border-gray-200 rounded-lg display">
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">No</th>
@@ -457,14 +522,13 @@ function doGet(e) {
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-xl font-bold text-gray-800">Daftar Guru</h3>
                             <div class="flex gap-2">
-                                <input type="text" id="searchTeacher" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Cari guru...">
                                 <button id="exportTeachersBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200 font-medium">
                                     📊 Export Data
                                 </button>
                             </div>
                         </div>
                         <div class="overflow-x-auto">
-                            <table class="w-full bg-white border border-gray-200 rounded-lg">
+                            <table id="teacherDataTable" class="w-full bg-white border border-gray-200 rounded-lg display">
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">ID Guru</th>
@@ -497,9 +561,77 @@ function doGet(e) {
         let teacherIdCounter = 1;
         let savedUserIds = [];
         
+        // DataTables instances
+        let attendanceDataTable = null;
+        let teacherDataTable = null;
+        
         // Google Apps Script Configuration
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxY2_mjSnRyN25L2itMDKKdUOUqydfbfCw6rPTrD7FFYRXAuZe7oX5PfzQcN4pA8-Kz/exec';
         let isOnline = navigator.onLine;
+
+        // Initialize DataTables
+        function initializeDataTables() {
+            // Initialize Attendance DataTable
+            if (attendanceDataTable) {
+                attendanceDataTable.destroy();
+            }
+            
+            attendanceDataTable = $('#attendanceDataTable').DataTable({
+                responsive: true,
+                pageLength: 25,
+                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+                language: {
+                    search: "Cari:",
+                    lengthMenu: "Tampilkan _MENU_ data per halaman",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                    infoEmpty: "Menampilkan 0 sampai 0 dari 0 data",
+                    infoFiltered: "(difilter dari _MAX_ total data)",
+                    paginate: {
+                        first: "Pertama",
+                        last: "Terakhir",
+                        next: "Selanjutnya",
+                        previous: "Sebelumnya"
+                    },
+                    emptyTable: "Tidak ada data absensi",
+                    zeroRecords: "Tidak ada data yang cocok"
+                },
+                order: [[5, 'desc']], // Sort by date/time column descending
+                columnDefs: [
+                    { orderable: false, targets: 0 }, // Disable sorting for No column
+                    { className: "text-center", targets: [0, 6] } // Center align No and Status columns
+                ]
+            });
+
+            // Initialize Teacher DataTable
+            if (teacherDataTable) {
+                teacherDataTable.destroy();
+            }
+            
+            teacherDataTable = $('#teacherDataTable').DataTable({
+                responsive: true,
+                pageLength: 25,
+                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+                language: {
+                    search: "Cari:",
+                    lengthMenu: "Tampilkan _MENU_ data per halaman",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                    infoEmpty: "Menampilkan 0 sampai 0 dari 0 data",
+                    infoFiltered: "(difilter dari _MAX_ total data)",
+                    paginate: {
+                        first: "Pertama",
+                        last: "Terakhir",
+                        next: "Selanjutnya",
+                        previous: "Sebelumnya"
+                    },
+                    emptyTable: "Tidak ada data guru",
+                    zeroRecords: "Tidak ada data yang cocok"
+                },
+                order: [[0, 'asc']], // Sort by ID column ascending
+                columnDefs: [
+                    { className: "text-center", targets: 0 } // Center align ID column
+                ]
+            });
+        }
 
         // Local Storage Functions for Saved IDs
         function loadSavedIds() {
@@ -1615,12 +1747,20 @@ function doGet(e) {
             
             console.log('Filtered attendance records:', displayAttendance.length);
             
-            const tableBody = document.getElementById('attendanceTable');
+            // Clear existing DataTable if it exists
+            if (attendanceDataTable) {
+                attendanceDataTable.clear();
+            }
             
             if (displayAttendance.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Tidak ada data absensi sesuai filter</td></tr>';
+                // If no DataTable exists, show empty message in tbody
+                if (!attendanceDataTable) {
+                    const tableBody = document.getElementById('attendanceTable');
+                    tableBody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Tidak ada data absensi sesuai filter</td></tr>';
+                }
             } else {
-                tableBody.innerHTML = displayAttendance.map((record, index) => {
+                // Prepare data for DataTable
+                const tableData = displayAttendance.map((record, index) => {
                     console.log('Processing record:', record);
                     
                     // Use stored data if available, fallback to finding teacher data
@@ -1630,25 +1770,26 @@ function doGet(e) {
                     const recordDate = record.date || '-';
                     const recordTime = record.time || '-';
                     
-                    return `
-                        <tr class="border-t border-gray-200 hover:bg-gray-50">
-                            <td class="px-4 py-3 text-sm text-gray-900">${index + 1}</td>
-                            <td class="px-4 py-3 text-sm font-medium text-gray-900">${record.userId || '-'}</td>
-                            <td class="px-4 py-3 text-sm text-gray-900">${teacherName}</td>
-                            <td class="px-4 py-3 text-sm text-gray-900">${teacherSchool}</td>
-                            <td class="px-4 py-3 text-sm text-gray-900">${teacherDistrict}</td>
-                            <td class="px-4 py-3 text-sm text-gray-900">
-                                <div>${recordDate}</div>
-                                <div class="text-xs text-gray-500">${recordTime}</div>
-                            </td>
-                            <td class="px-4 py-3">
-                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                                    Hadir
-                                </span>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
+                    return [
+                        index + 1,
+                        record.userId || '-',
+                        teacherName,
+                        teacherSchool,
+                        teacherDistrict,
+                        `<div>${recordDate}</div><div class="text-xs text-gray-500">${recordTime}</div>`,
+                        '<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Hadir</span>'
+                    ];
+                });
+                
+                // Initialize DataTable if not exists, otherwise add data
+                if (!attendanceDataTable) {
+                    // Clear the placeholder row first
+                    document.getElementById('attendanceTable').innerHTML = '';
+                    initializeDataTables();
+                }
+                
+                // Add data to DataTable
+                attendanceDataTable.rows.add(tableData).draw();
             }
             
             console.log('Attendance table updated');
@@ -1866,23 +2007,37 @@ function doGet(e) {
             }
         });
 
-        // Search teacher
-        document.getElementById('searchTeacher').addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            updateTeacherTable(searchTerm);
-        });
+        // Search functionality is now handled by DataTables built-in search
 
         // Export teachers
         document.getElementById('exportTeachersBtn').addEventListener('click', function() {
-            if (teacherData.length === 0) {
+            // Get data from DataTable if it exists, otherwise use all teacher data
+            let dataToExport;
+            
+            if (teacherDataTable && teacherDataTable.rows().count() > 0) {
+                // Get visible data from DataTable (respects search/filter)
+                const visibleData = teacherDataTable.rows({ search: 'applied' }).data().toArray();
+                dataToExport = visibleData.map(row => ({
+                    id: row[0],
+                    name: row[1],
+                    school: row[2],
+                    district: row[3]
+                }));
+            } else {
+                dataToExport = teacherData;
+            }
+            
+            if (dataToExport.length === 0) {
                 alert('Tidak ada data guru untuk diekspor');
                 return;
             }
             
             let csvContent = "ID Guru,Nama Lengkap,Sekolah,Kecamatan,Status,Tanggal Dibuat\n";
-            teacherData.forEach(teacher => {
-                const status = teacher.isActive ? 'Aktif' : 'Tidak Aktif';
-                const date = new Date(teacher.createdAt).toLocaleDateString('id-ID');
+            dataToExport.forEach(teacher => {
+                // Find original teacher data for additional info
+                const originalTeacher = teacherData.find(t => t.id === teacher.id) || teacher;
+                const status = originalTeacher.isActive ? 'Aktif' : 'Tidak Aktif';
+                const date = originalTeacher.createdAt ? new Date(originalTeacher.createdAt).toLocaleDateString('id-ID') : '-';
                 csvContent += `${teacher.id},"${teacher.name}","${teacher.school}","${teacher.district}",${status},${date}\n`;
             });
             
@@ -1907,30 +2062,44 @@ function doGet(e) {
             document.getElementById('totalDistricts').textContent = uniqueDistricts.length;
         }
 
-        function updateTeacherTable(searchTerm = '') {
-            const filteredTeachers = teacherData.filter(teacher => 
-                teacher.name.toLowerCase().includes(searchTerm) ||
-                teacher.id.toLowerCase().includes(searchTerm) ||
-                teacher.school.toLowerCase().includes(searchTerm) ||
-                teacher.district.toLowerCase().includes(searchTerm)
-            );
+        function updateTeacherTable() {
+            console.log('Updating teacher table...');
+            console.log('Total teacher records:', teacherData.length);
             
-            const tableBody = document.getElementById('teacherTable');
-            
-            if (filteredTeachers.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">Tidak ada data guru</td></tr>';
-            } else {
-                tableBody.innerHTML = filteredTeachers.map(teacher => {
-                    return `
-                        <tr class="border-t border-gray-200">
-                            <td class="px-4 py-3 text-sm font-medium text-gray-900">${teacher.id}</td>
-                            <td class="px-4 py-3 text-sm text-gray-900">${teacher.name}</td>
-                            <td class="px-4 py-3 text-sm text-gray-900">${teacher.school}</td>
-                            <td class="px-4 py-3 text-sm text-gray-900">${teacher.district}</td>
-                        </tr>
-                    `;
-                }).join('');
+            // Clear existing DataTable if it exists
+            if (teacherDataTable) {
+                teacherDataTable.clear();
             }
+            
+            if (teacherData.length === 0) {
+                // If no DataTable exists, show empty message in tbody
+                if (!teacherDataTable) {
+                    const tableBody = document.getElementById('teacherTable');
+                    tableBody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">Tidak ada data guru</td></tr>';
+                }
+            } else {
+                // Prepare data for DataTable
+                const tableData = teacherData.map(teacher => {
+                    return [
+                        teacher.id,
+                        teacher.name,
+                        teacher.school,
+                        teacher.district
+                    ];
+                });
+                
+                // Initialize DataTable if not exists, otherwise add data
+                if (!teacherDataTable) {
+                    // Clear the placeholder row first
+                    document.getElementById('teacherTable').innerHTML = '';
+                    initializeDataTables();
+                }
+                
+                // Add data to DataTable
+                teacherDataTable.rows.add(tableData).draw();
+            }
+            
+            console.log('Teacher table updated');
         }
 
 
@@ -1941,8 +2110,23 @@ function doGet(e) {
 
         // Export functionality
         document.getElementById('exportBtn').addEventListener('click', function() {
-            // Use filtered data if available, otherwise use all data
-            const dataToExport = window.currentFilteredData || attendanceData;
+            // Get data from DataTable if it exists, otherwise use filtered data or all data
+            let dataToExport;
+            
+            if (attendanceDataTable && attendanceDataTable.rows().count() > 0) {
+                // Get visible data from DataTable (respects search/filter)
+                const visibleData = attendanceDataTable.rows({ search: 'applied' }).data().toArray();
+                dataToExport = visibleData.map((row, index) => ({
+                    userId: row[1],
+                    namaLengkap: row[2],
+                    sekolah: row[3],
+                    kecamatan: row[4],
+                    date: row[5].replace(/<[^>]*>/g, '').split('\n')[0], // Remove HTML and get date part
+                    time: row[5].replace(/<[^>]*>/g, '').split('\n')[1] || '', // Get time part
+                }));
+            } else {
+                dataToExport = window.currentFilteredData || attendanceData;
+            }
             
             if (dataToExport.length === 0) {
                 alert('Tidak ada data untuk diekspor');
@@ -1955,8 +2139,10 @@ function doGet(e) {
                 const teacherName = record.namaLengkap || (teacherData.find(t => t.id === record.userId)?.name) || 'Tidak Diketahui';
                 const teacherSchool = record.sekolah || (teacherData.find(t => t.id === record.userId)?.school) || '-';
                 const teacherDistrict = record.kecamatan || (teacherData.find(t => t.id === record.userId)?.district) || '-';
+                const recordDate = record.date || '-';
+                const recordTime = record.time || '-';
                 
-                csvContent += `${index + 1},${record.userId},"${teacherName}","${teacherSchool}","${teacherDistrict}",${record.date},${record.time},Hadir\n`;
+                csvContent += `${index + 1},${record.userId},"${teacherName}","${teacherSchool}","${teacherDistrict}",${recordDate},${recordTime},Hadir\n`;
             });
             
             const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -2084,5 +2270,5 @@ function doGet(e) {
             loadDataFromGoogleSheets();
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98c43da0863b6bf4',t:'MTc2MDA3OTYyNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98c4463f34456bf4',t:'MTc2MDA3OTk4MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
