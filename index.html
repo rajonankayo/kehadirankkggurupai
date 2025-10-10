@@ -355,6 +355,10 @@ function doGet(e) {
                                     class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200 font-medium text-sm">
                                     🔧 Test Koneksi
                                 </button>
+                                <button id="refreshDataBtn"
+                                    class="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition duration-200 font-medium text-sm">
+                                    🔄 Refresh Tabel
+                                </button>
                             </div>
                             <div id="debugInfo" class="mt-3 text-xs text-gray-600 bg-gray-50 p-2 rounded"
                                 style="display: none;">
@@ -571,33 +575,46 @@ function doGet(e) {
 
                 // Load teachers data from Google Sheets with error handling
                 try {
-                    const teachersResponse = await fetch(`${GOOGLE_SCRIPT_URL}?action=getTeachers`, {
+                    console.log('Loading teachers from:', `${GOOGLE_SCRIPT_URL}?action=getTeachers`);
+                    const teachersResponse = await fetch(`${GOOGLE_SCRIPT_URL}?action=getTeachers&t=${Date.now()}`, {
                         method: 'GET',
-                        mode: 'cors'
+                        mode: 'cors',
+                        cache: 'no-cache'
                     });
+
+                    console.log('Teachers response status:', teachersResponse.status);
 
                     if (teachersResponse.ok) {
                         const teachersText = await teachersResponse.text();
-                        console.log('Teachers response:', teachersText);
+                        console.log('Teachers raw response:', teachersText);
 
-                        if (teachersText && teachersText !== 'No action specified') {
-                            const teachers = JSON.parse(teachersText);
-                            if (Array.isArray(teachers)) {
-                                teacherData = teachers;
-                                console.log('Loaded teachers:', teacherData.length);
+                        if (teachersText && teachersText.trim() !== '' && teachersText !== 'No action specified') {
+                            try {
+                                const teachers = JSON.parse(teachersText);
+                                if (Array.isArray(teachers)) {
+                                    teacherData = teachers.filter(t => t && t.id); // Filter out empty records
+                                    console.log('Successfully loaded teachers:', teacherData.length);
 
-                                // Update counter based on existing data
-                                if (teacherData.length > 0) {
-                                    const maxId = Math.max(...teacherData.map(t => {
-                                        const idNum = parseInt(t.id.replace('GR', ''));
-                                        return isNaN(idNum) ? 0 : idNum;
-                                    }));
-                                    teacherIdCounter = maxId + 1;
+                                    // Update counter based on existing data
+                                    if (teacherData.length > 0) {
+                                        const maxId = Math.max(...teacherData.map(t => {
+                                            const idNum = parseInt(t.id.replace('GR', ''));
+                                            return isNaN(idNum) ? 0 : idNum;
+                                        }));
+                                        teacherIdCounter = maxId + 1;
+                                    }
+                                } else {
+                                    console.warn('Teachers data is not an array:', teachers);
                                 }
+                            } catch (parseError) {
+                                console.error('Error parsing teachers JSON:', parseError);
+                                console.log('Raw response that failed to parse:', teachersText);
                             }
+                        } else {
+                            console.log('Empty or invalid teachers response');
                         }
                     } else {
-                        console.error('Teachers response not OK:', teachersResponse.status);
+                        console.error('Teachers response not OK:', teachersResponse.status, teachersResponse.statusText);
                     }
                 } catch (teacherError) {
                     console.error('Error loading teachers:', teacherError);
@@ -606,37 +623,68 @@ function doGet(e) {
 
                 // Load attendance data from Google Sheets with error handling
                 try {
-                    const attendanceResponse = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAttendance`, {
+                    console.log('Loading attendance from:', `${GOOGLE_SCRIPT_URL}?action=getAttendance`);
+                    const attendanceResponse = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAttendance&t=${Date.now()}`, {
                         method: 'GET',
-                        mode: 'cors'
+                        mode: 'cors',
+                        cache: 'no-cache'
                     });
+
+                    console.log('Attendance response status:', attendanceResponse.status);
 
                     if (attendanceResponse.ok) {
                         const attendanceText = await attendanceResponse.text();
-                        console.log('Attendance response:', attendanceText);
+                        console.log('Attendance raw response:', attendanceText);
 
-                        if (attendanceText && attendanceText !== 'No action specified') {
-                            const attendance = JSON.parse(attendanceText);
-                            if (Array.isArray(attendance)) {
-                                attendanceData = attendance;
-                                console.log('Loaded attendance:', attendanceData.length);
+                        if (attendanceText && attendanceText.trim() !== '' && attendanceText !== 'No action specified') {
+                            try {
+                                const attendance = JSON.parse(attendanceText);
+                                if (Array.isArray(attendance)) {
+                                    // Filter out empty records and ensure proper data structure
+                                    attendanceData = attendance.filter(record => record && record.userId).map(record => ({
+                                        id: record.id || attendanceData.length + 1,
+                                        userId: record.userId,
+                                        namaLengkap: record.namaLengkap || record.nama || '',
+                                        sekolah: record.sekolah || record.school || '',
+                                        kecamatan: record.kecamatan || record.district || '',
+                                        date: record.date || record.tanggal || '',
+                                        time: record.time || record.waktu || '',
+                                        timestamp: record.timestamp || new Date().toISOString()
+                                    }));
+                                    console.log('Successfully loaded attendance:', attendanceData.length);
+                                    console.log('Sample attendance record:', attendanceData[0]);
+                                } else {
+                                    console.warn('Attendance data is not an array:', attendance);
+                                }
+                            } catch (parseError) {
+                                console.error('Error parsing attendance JSON:', parseError);
+                                console.log('Raw response that failed to parse:', attendanceText);
                             }
+                        } else {
+                            console.log('Empty or invalid attendance response');
                         }
                     } else {
-                        console.error('Attendance response not OK:', attendanceResponse.status);
+                        console.error('Attendance response not OK:', attendanceResponse.status, attendanceResponse.statusText);
                     }
                 } catch (attendanceError) {
                     console.error('Error loading attendance:', attendanceError);
                     showSyncStatus('⚠️ Gagal memuat data absensi dari Google Sheets', 'error');
                 }
 
-                // Update UI components
+                // Update UI components after loading data
+                console.log('Updating UI with loaded data...');
                 updateTeacherStats();
                 updateTeacherTable();
                 updateAdminStats();
                 updateAttendanceTable();
 
-                if (teacherData.length > 0 || attendanceData.length > 0) {
+                // Update user attendance if logged in
+                if (currentUser) {
+                    updateUserAttendanceHistory();
+                }
+
+                const totalRecords = teacherData.length + attendanceData.length;
+                if (totalRecords > 0) {
                     showSyncStatus(`✅ Data dimuat: ${teacherData.length} guru, ${attendanceData.length} absensi`, 'success');
                 } else {
                     showSyncStatus('⚠️ Tidak ada data ditemukan di Google Sheets', 'warning');
@@ -644,7 +692,7 @@ function doGet(e) {
 
             } catch (error) {
                 console.error('General load error:', error);
-                showSyncStatus('⚠️ Gagal memuat data dari Google Sheets', 'error');
+                showSyncStatus('⚠️ Gagal memuat data dari Google Sheets: ' + error.message, 'error');
             }
         }
 
@@ -1081,28 +1129,46 @@ function doGet(e) {
         }
 
         function updateAttendanceTable() {
+            console.log('Updating attendance table...');
+            console.log('Total attendance records:', attendanceData.length);
+
             const today = new Date().toLocaleDateString('id-ID');
-            const todayAttendance = attendanceData.filter(record => record.date === today);
+            console.log('Today date:', today);
+
+            // Show all attendance data, not just today's
+            let displayAttendance = attendanceData;
+
+            // If you want to filter by today, uncomment this line:
+            // displayAttendance = attendanceData.filter(record => record.date === today);
+
+            console.log('Filtered attendance records:', displayAttendance.length);
 
             const tableBody = document.getElementById('attendanceTable');
 
-            if (todayAttendance.length === 0) {
+            if (displayAttendance.length === 0) {
                 tableBody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Belum ada data absensi</td></tr>';
             } else {
-                tableBody.innerHTML = todayAttendance.map((record, index) => {
+                tableBody.innerHTML = displayAttendance.map((record, index) => {
+                    console.log('Processing record:', record);
+
                     // Use stored data if available, fallback to finding teacher data
-                    const teacherName = record.namaLengkap || (teacherData.find(t => t.id === record.userId)?.name) || 'Tidak Diketahui';
+                    const teacherName = record.namaLengkap || (teacherData.find(t => t.id === record.userId)?.name) || record.userId || 'Tidak Diketahui';
                     const teacherSchool = record.sekolah || (teacherData.find(t => t.id === record.userId)?.school) || '-';
                     const teacherDistrict = record.kecamatan || (teacherData.find(t => t.id === record.userId)?.district) || '-';
+                    const recordDate = record.date || '-';
+                    const recordTime = record.time || '-';
 
                     return `
-                        <tr class="border-t border-gray-200">
+                        <tr class="border-t border-gray-200 hover:bg-gray-50">
                             <td class="px-4 py-3 text-sm text-gray-900">${index + 1}</td>
-                            <td class="px-4 py-3 text-sm font-medium text-gray-900">${record.userId}</td>
+                            <td class="px-4 py-3 text-sm font-medium text-gray-900">${record.userId || '-'}</td>
                             <td class="px-4 py-3 text-sm text-gray-900">${teacherName}</td>
                             <td class="px-4 py-3 text-sm text-gray-900">${teacherSchool}</td>
                             <td class="px-4 py-3 text-sm text-gray-900">${teacherDistrict}</td>
-                            <td class="px-4 py-3 text-sm text-gray-900">${record.time}</td>
+                            <td class="px-4 py-3 text-sm text-gray-900">
+                                <div>${recordDate}</div>
+                                <div class="text-xs text-gray-500">${recordTime}</div>
+                            </td>
                             <td class="px-4 py-3">
                                 <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
                                     Hadir
@@ -1112,6 +1178,8 @@ function doGet(e) {
                     `;
                 }).join('');
             }
+
+            console.log('Attendance table updated');
         }
 
         // Teacher management
@@ -1259,6 +1327,24 @@ function doGet(e) {
             loadDataFromGoogleSheets();
         });
 
+        // Refresh data button
+        document.getElementById('refreshDataBtn').addEventListener('click', function () {
+            console.log('Manual refresh triggered');
+            console.log('Current data - Teachers:', teacherData.length, 'Attendance:', attendanceData.length);
+
+            // Force update all UI components
+            updateTeacherStats();
+            updateTeacherTable();
+            updateAdminStats();
+            updateAttendanceTable();
+
+            if (currentUser) {
+                updateUserAttendanceHistory();
+            }
+
+            showSyncStatus('🔄 Tabel berhasil di-refresh', 'success');
+        });
+
         // Test connection button
         document.getElementById('testConnectionBtn').addEventListener('click', async function () {
             const debugInfo = document.getElementById('debugInfo');
@@ -1334,7 +1420,7 @@ function doGet(e) {
             loadDataFromGoogleSheets();
         }
     </script>
-    <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'98c2fc3574ef9cf6',t:'MTc2MDA2NjQ2MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
+    <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'98c30884b5f1a8de',t:'MTc2MDA2Njk2NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
 </body>
 
 </html>
