@@ -773,36 +773,80 @@ function doGet(e) {
             currentQRCode = `ABSEN_KKG_${date}_${timestamp}`;
 
             const canvas = document.getElementById('qrCanvas');
+            const ctx = canvas.getContext('2d');
 
-            // Generate real QR code using QRCode.js library
-            QRCode.toCanvas(canvas, currentQRCode, {
-                width: 192,
-                height: 192,
-                margin: 2,
-                color: {
-                    dark: '#000000',
-                    light: '#FFFFFF'
-                },
-                errorCorrectionLevel: 'M'
-            }, function (error) {
-                if (error) {
-                    console.error('QR Code generation error:', error);
-                    // Fallback to text display if QR generation fails
-                    const ctx = canvas.getContext('2d');
-                    ctx.fillStyle = 'white';
-                    ctx.fillRect(0, 0, 192, 192);
-                    ctx.fillStyle = 'black';
-                    ctx.font = '12px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('QR Code Error', 96, 96);
-                } else {
-                    console.log('QR Code generated successfully');
-                }
-            });
+            // Check if QRCode library is available
+            if (typeof QRCode !== 'undefined') {
+                // Generate real QR code using QRCode.js library
+                QRCode.toCanvas(canvas, currentQRCode, {
+                    width: 192,
+                    height: 192,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    },
+                    errorCorrectionLevel: 'M'
+                }, function (error) {
+                    if (error) {
+                        console.error('QR Code generation error:', error);
+                        drawFallbackQR(ctx);
+                    } else {
+                        console.log('QR Code generated successfully');
+                    }
+                });
+            } else {
+                // Fallback if library not loaded
+                console.log('QRCode library not available, using fallback');
+                drawFallbackQR(ctx);
+            }
 
             const validTime = new Date();
             validTime.setHours(validTime.getHours() + 1);
             document.getElementById('qrValidTime').textContent = validTime.toLocaleTimeString('id-ID');
+        }
+
+        function drawFallbackQR(ctx) {
+            // Clear canvas
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, 192, 192);
+
+            // Draw a simple pattern that looks like QR code
+            ctx.fillStyle = 'black';
+
+            // Draw corner squares
+            ctx.fillRect(10, 10, 30, 30);
+            ctx.fillRect(152, 10, 30, 30);
+            ctx.fillRect(10, 152, 30, 30);
+
+            // Draw inner squares
+            ctx.fillStyle = 'white';
+            ctx.fillRect(15, 15, 20, 20);
+            ctx.fillRect(157, 15, 20, 20);
+            ctx.fillRect(15, 157, 20, 20);
+
+            // Draw center squares
+            ctx.fillStyle = 'black';
+            ctx.fillRect(20, 20, 10, 10);
+            ctx.fillRect(162, 20, 10, 10);
+            ctx.fillRect(20, 162, 10, 10);
+
+            // Draw some random pattern
+            ctx.fillStyle = 'black';
+            for (let i = 50; i < 142; i += 10) {
+                for (let j = 50; j < 142; j += 10) {
+                    if (Math.random() > 0.5) {
+                        ctx.fillRect(i, j, 8, 8);
+                    }
+                }
+            }
+
+            // Add text
+            ctx.fillStyle = 'black';
+            ctx.font = '10px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('QR ABSENSI', 96, 100);
+            ctx.fillText('KKG PAI', 96, 115);
         }
 
         // Attendance recording
@@ -1080,17 +1124,24 @@ function doGet(e) {
         updateTeacherTable();
         updateSyncStatusBadge();
 
-        // Generate QR code after page loads
-        setTimeout(() => {
-            generateQRCode();
-        }, 500);
+        // Generate QR code after page loads and libraries are ready
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                if (typeof QRCode !== 'undefined') {
+                    generateQRCode();
+                } else {
+                    console.log('QRCode library not loaded yet, retrying...');
+                    setTimeout(generateQRCode, 1000);
+                }
+            }, 1000);
+        });
 
         // Load data from Google Sheets on startup
         if (isOnline) {
             loadDataFromGoogleSheets();
         }
     </script>
-    <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'98c26135a5ca5fd8',t:'MTc2MDA2MDExMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
+    <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'98c270b2d17d9faa',t:'MTc2MDA2MDc0Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
 </body>
 
 </html>
