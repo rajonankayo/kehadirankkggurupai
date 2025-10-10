@@ -52,7 +52,7 @@
                 <div class="text-sm text-blue-700 space-y-2">
                     <p><strong>1. Buat Google Spreadsheet baru</strong> dengan 2 sheet: "DataGuru" dan "DataAbsensi"</p>
                     <p><strong>2. Di sheet "DataGuru"</strong> buat header: ID_Guru | Nama_Lengkap | Sekolah | Kecamatan | Tanggal_Dibuat</p>
-                    <p><strong>3. Di sheet "DataAbsensi"</strong> buat header: ID | ID_Guru | Tanggal | Waktu | Timestamp</p>
+                    <p><strong>3. Di sheet "DataAbsensi"</strong> buat header: ID | ID_Guru | Nama_Lengkap | Sekolah | Kecamatan | Tanggal | Waktu | Timestamp</p>
                     <p><strong>4. Buka Extensions → Apps Script</strong> dan paste kode berikut:</p>
                     <div class="bg-gray-800 text-green-400 p-3 rounded mt-2 text-xs overflow-x-auto">
 <pre>function doPost(e) {
@@ -73,6 +73,9 @@
     sheet.appendRow([
       data.data.id,
       data.data.userId,
+      data.data.namaLengkap,
+      data.data.sekolah,
+      data.data.kecamatan,
       data.data.date,
       data.data.time,
       new Date(data.data.timestamp)
@@ -113,9 +116,12 @@ function doGet(e) {
     const attendance = rows.map(row => ({
       id: row[0],
       userId: row[1],
-      date: row[2],
-      time: row[3],
-      timestamp: row[4]
+      namaLengkap: row[2],
+      sekolah: row[3],
+      kecamatan: row[4],
+      date: row[5],
+      time: row[6],
+      timestamp: row[7]
     }));
     
     return ContentService
@@ -852,38 +858,58 @@ function doGet(e) {
         // Attendance recording
         async function recordAttendance(userId) {
             const now = new Date();
-            const attendance = {
-                id: attendanceData.length + 1,
-                userId: userId,
-                timestamp: now.toISOString(),
-                date: now.toLocaleDateString('id-ID'),
-                time: now.toLocaleTimeString('id-ID')
-            };
-            
-            // Check if user already attended today
             const today = now.toLocaleDateString('id-ID');
+            
+            // Check if user already attended today (VALIDASI UTAMA)
             const alreadyAttended = attendanceData.some(record => 
                 record.userId === userId && record.date === today
             );
             
             if (alreadyAttended) {
-                showScanStatus('Anda sudah absen hari ini!', 'error');
+                // Jika sudah absen, tampilkan alert dan jangan kirim ke Google Sheets
+                showScanStatus('⚠️ ID Guru ' + userId + ' sudah melakukan absensi hari ini!', 'error');
+                
+                // Tampilkan alert popup juga
+                alert('ID Guru ' + userId + ' sudah melakukan absensi hari ini!\n\nData tidak akan dikirim ke Google Spreadsheet.');
+                return; // Stop di sini, tidak lanjut ke Google Sheets
+            }
+            
+            // Find teacher data based on userId
+            const teacher = teacherData.find(t => t.id === userId);
+            
+            if (!teacher) {
+                showScanStatus('❌ ID Guru ' + userId + ' tidak ditemukan dalam database!', 'error');
+                alert('ID Guru ' + userId + ' tidak terdaftar dalam sistem!\n\nSilakan hubungi admin untuk mendaftarkan ID Guru ini.');
                 return;
             }
+            
+            // Jika belum absen, buat data absensi baru dengan informasi lengkap guru
+            const attendance = {
+                id: attendanceData.length + 1,
+                userId: userId,
+                namaLengkap: teacher.name,
+                sekolah: teacher.school,
+                kecamatan: teacher.district,
+                timestamp: now.toISOString(),
+                date: today,
+                time: now.toLocaleTimeString('id-ID')
+            };
             
             // Add to local data first
             attendanceData.push(attendance);
             
-            // Sync to Google Sheets
+            // Sync to Google Sheets (hanya jika belum pernah absen)
             const syncSuccess = await syncToGoogleSheets(attendance, 'attendance');
             
             if (syncSuccess) {
-                showScanStatus('✅ Absensi berhasil dicatat!', 'success');
+                showScanStatus('✅ Absensi berhasil dicatat dan dikirim ke Google Sheets!', 'success');
                 updateUserAttendanceHistory();
                 updateAdminStats();
                 updateAttendanceTable();
             } else {
-                showScanStatus('❌ Gagal mencatat absensi!', 'error');
+                showScanStatus('❌ Gagal mengirim data ke Google Sheets!', 'error');
+                // Hapus dari local data jika gagal sync
+                attendanceData.pop();
             }
         }
 
@@ -934,11 +960,10 @@ function doGet(e) {
                 tableBody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Belum ada data absensi</td></tr>';
             } else {
                 tableBody.innerHTML = todayAttendance.map((record, index) => {
-                    // Find teacher data
-                    const teacher = teacherData.find(t => t.id === record.userId);
-                    const teacherName = teacher ? teacher.name : 'Tidak Diketahui';
-                    const teacherSchool = teacher ? teacher.school : '-';
-                    const teacherDistrict = teacher ? teacher.district : '-';
+                    // Use stored data if available, fallback to finding teacher data
+                    const teacherName = record.namaLengkap || (teacherData.find(t => t.id === record.userId)?.name) || 'Tidak Diketahui';
+                    const teacherSchool = record.sekolah || (teacherData.find(t => t.id === record.userId)?.school) || '-';
+                    const teacherDistrict = record.kecamatan || (teacherData.find(t => t.id === record.userId)?.district) || '-';
                     
                     return `
                         <tr class="border-t border-gray-200">
@@ -1082,10 +1107,10 @@ function doGet(e) {
             
             let csvContent = "No,ID Guru,Nama Lengkap,Sekolah,Kecamatan,Tanggal,Waktu,Status\n";
             todayAttendance.forEach((record, index) => {
-                const teacher = teacherData.find(t => t.id === record.userId);
-                const teacherName = teacher ? teacher.name : 'Tidak Diketahui';
-                const teacherSchool = teacher ? teacher.school : '-';
-                const teacherDistrict = teacher ? teacher.district : '-';
+                // Use stored data if available, fallback to finding teacher data
+                const teacherName = record.namaLengkap || (teacherData.find(t => t.id === record.userId)?.name) || 'Tidak Diketahui';
+                const teacherSchool = record.sekolah || (teacherData.find(t => t.id === record.userId)?.school) || '-';
+                const teacherDistrict = record.kecamatan || (teacherData.find(t => t.id === record.userId)?.district) || '-';
                 
                 csvContent += `${index + 1},${record.userId},"${teacherName}","${teacherSchool}","${teacherDistrict}",${record.date},${record.time},Hadir\n`;
             });
@@ -1141,5 +1166,5 @@ function doGet(e) {
             loadDataFromGoogleSheets();
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98c27dd695da9faa',t:'MTc2MDA2MTI4NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98c2e78f933a938e',t:'MTc2MDA2NTYxNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
