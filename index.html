@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
             box-sizing: border-box;
@@ -812,7 +813,22 @@ function doGet(e) {
 
         function startScanning() {
             if (!currentUser) {
-                showScanStatus('Silakan login terlebih dahulu!', 'error');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Belum Login!',
+                    html: `
+                        <div class="text-center">
+                            <div class="text-gray-600 mb-3">Anda harus login terlebih dahulu</div>
+                            <div class="p-3 bg-yellow-50 rounded-lg">
+                                <div class="text-sm text-yellow-800">
+                                    🔑 Masukkan ID Guru Anda untuk melanjutkan
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#f59e0b'
+                });
                 return;
             }
 
@@ -840,13 +856,61 @@ function doGet(e) {
                                 await recordAttendance(currentUser);
                                 stopScanning();
                             } else {
-                                showScanStatus('QR Code sudah kadaluarsa atau bukan untuk hari ini!', 'error');
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'QR Code Kadaluarsa!',
+                                    html: `
+                                        <div class="text-center">
+                                            <div class="text-gray-600 mb-3">QR Code ini sudah tidak berlaku</div>
+                                            <div class="p-3 bg-red-50 rounded-lg">
+                                                <div class="text-sm text-red-800">
+                                                    📅 QR Code hanya berlaku untuk hari ini<br>
+                                                    🔄 Minta admin untuk generate QR Code baru
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `,
+                                    confirmButtonText: 'OK',
+                                    confirmButtonColor: '#ef4444'
+                                });
                             }
                         } else {
-                            showScanStatus('Format QR Code tidak valid!', 'error');
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Format QR Code Salah!',
+                                html: `
+                                    <div class="text-center">
+                                        <div class="text-gray-600 mb-3">Format QR Code tidak sesuai</div>
+                                        <div class="p-3 bg-red-50 rounded-lg">
+                                            <div class="text-sm text-red-800">
+                                                ❌ QR Code rusak atau tidak valid<br>
+                                                🔄 Minta admin untuk generate QR Code baru
+                                            </div>
+                                        </div>
+                                    </div>
+                                `,
+                                confirmButtonText: 'OK',
+                                confirmButtonColor: '#ef4444'
+                            });
                         }
                     } else {
-                        showScanStatus('QR Code bukan untuk absensi KKG!', 'error');
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'QR Code Salah!',
+                            html: `
+                                <div class="text-center">
+                                    <div class="text-gray-600 mb-3">QR Code ini bukan untuk absensi KKG</div>
+                                    <div class="p-3 bg-yellow-50 rounded-lg">
+                                        <div class="text-sm text-yellow-800">
+                                            📱 Pastikan Anda scan QR Code absensi yang benar<br>
+                                            👨‍🏫 Minta QR Code absensi dari admin
+                                        </div>
+                                    </div>
+                                </div>
+                            `,
+                            confirmButtonText: 'OK',
+                            confirmButtonColor: '#f59e0b'
+                        });
                     }
                 },
                 (errorMessage) => {
@@ -858,7 +922,24 @@ function doGet(e) {
                 document.getElementById('stopScanBtn').style.display = 'inline-block';
                 showScanStatus('Scanning... Arahkan kamera ke QR Code', 'info');
             }).catch(err => {
-                showScanStatus('Tidak dapat mengakses kamera. Pastikan izin kamera diberikan.', 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Tidak Bisa Akses Kamera!',
+                    html: `
+                        <div class="text-center">
+                            <div class="text-gray-600 mb-3">Gagal mengakses kamera perangkat</div>
+                            <div class="p-3 bg-red-50 rounded-lg">
+                                <div class="text-sm text-red-800">
+                                    📷 Pastikan izin kamera sudah diberikan<br>
+                                    🔄 Refresh halaman dan coba lagi<br>
+                                    📱 Periksa pengaturan browser Anda
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#ef4444'
+                });
             });
         }
 
@@ -876,17 +957,42 @@ function doGet(e) {
         }
 
         function showScanStatus(message, type) {
-            const statusEl = document.getElementById('scanStatus');
-            statusEl.textContent = message;
-            statusEl.style.display = 'block';
-            
-            statusEl.className = 'text-center p-4 rounded-md mb-4';
             if (type === 'success') {
-                statusEl.classList.add('bg-green-100', 'text-green-800');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: message,
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#10b981',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
             } else if (type === 'error') {
-                statusEl.classList.add('bg-red-100', 'text-red-800');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: message,
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#ef4444'
+                });
+            } else if (type === 'warning') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Peringatan',
+                    text: message,
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#f59e0b'
+                });
             } else {
-                statusEl.classList.add('bg-blue-100', 'text-blue-800');
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Informasi',
+                    text: message,
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#3b82f6',
+                    timer: 2000,
+                    timerProgressBar: true
+                });
             }
         }
 
@@ -1020,11 +1126,25 @@ function doGet(e) {
             );
             
             if (alreadyAttended) {
-                // Jika sudah absen, tampilkan alert dan jangan kirim ke Google Sheets
-                showScanStatus('⚠️ ID Guru ' + userId + ' sudah melakukan absensi hari ini!', 'error');
-                
-                // Tampilkan alert popup juga
-                alert('ID Guru ' + userId + ' sudah melakukan absensi hari ini!\n\nData tidak akan dikirim ke Google Spreadsheet.');
+                // Jika sudah absen, tampilkan SweetAlert error
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sudah Absen!',
+                    html: `
+                        <div class="text-center">
+                            <div class="text-lg font-semibold mb-2">ID Guru: ${userId}</div>
+                            <div class="text-gray-600">Anda sudah melakukan absensi hari ini</div>
+                            <div class="mt-3 p-3 bg-yellow-50 rounded-lg">
+                                <div class="text-sm text-yellow-800">
+                                    📋 Data tidak akan dikirim ulang ke Google Spreadsheet
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    confirmButtonText: 'Mengerti',
+                    confirmButtonColor: '#f59e0b',
+                    allowOutsideClick: false
+                });
                 return; // Stop di sini, tidak lanjut ke Google Sheets
             }
             
@@ -1032,10 +1152,42 @@ function doGet(e) {
             const teacher = teacherData.find(t => t.id === userId);
             
             if (!teacher) {
-                showScanStatus('❌ ID Guru ' + userId + ' tidak ditemukan dalam database!', 'error');
-                alert('ID Guru ' + userId + ' tidak terdaftar dalam sistem!\n\nSilakan hubungi admin untuk mendaftarkan ID Guru ini.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'ID Tidak Terdaftar!',
+                    html: `
+                        <div class="text-center">
+                            <div class="text-lg font-semibold mb-2">ID Guru: ${userId}</div>
+                            <div class="text-gray-600 mb-3">ID ini tidak ditemukan dalam database</div>
+                            <div class="p-3 bg-red-50 rounded-lg">
+                                <div class="text-sm text-red-800">
+                                    📞 Silakan hubungi admin untuk mendaftarkan ID Guru ini
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#ef4444',
+                    allowOutsideClick: false
+                });
                 return;
             }
+            
+            // Show loading while processing
+            Swal.fire({
+                title: 'Memproses Absensi...',
+                html: `
+                    <div class="text-center">
+                        <div class="text-lg font-semibold mb-2">${teacher.name}</div>
+                        <div class="text-gray-600">${teacher.school}</div>
+                        <div class="text-gray-500">${teacher.district}</div>
+                    </div>
+                `,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
             
             // Jika belum absen, buat data absensi baru dengan informasi lengkap guru
             const attendance = {
@@ -1056,12 +1208,63 @@ function doGet(e) {
             const syncSuccess = await syncToGoogleSheets(attendance, 'attendance');
             
             if (syncSuccess) {
-                showScanStatus('✅ Absensi berhasil dicatat dan dikirim ke Google Sheets!', 'success');
+                // Success message with detailed info
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Absensi Berhasil!',
+                    html: `
+                        <div class="text-center">
+                            <div class="text-lg font-semibold mb-2">${teacher.name}</div>
+                            <div class="text-gray-600 mb-1">${teacher.school}</div>
+                            <div class="text-gray-500 mb-3">${teacher.district}</div>
+                            <div class="flex justify-center items-center space-x-4 text-sm">
+                                <div class="flex items-center">
+                                    <span class="text-gray-500">📅</span>
+                                    <span class="ml-1">${today}</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="text-gray-500">🕐</span>
+                                    <span class="ml-1">${attendance.time}</span>
+                                </div>
+                            </div>
+                            <div class="mt-3 p-3 bg-green-50 rounded-lg">
+                                <div class="text-sm text-green-800">
+                                    ✅ Data berhasil disimpan ke Google Spreadsheet
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    confirmButtonText: 'Selesai',
+                    confirmButtonColor: '#10b981',
+                    timer: 5000,
+                    timerProgressBar: true,
+                    allowOutsideClick: false
+                });
+                
                 updateUserAttendanceHistory();
                 updateAdminStats();
                 updateAttendanceTable();
             } else {
-                showScanStatus('❌ Gagal mengirim data ke Google Sheets!', 'error');
+                // Error message
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Menyimpan!',
+                    html: `
+                        <div class="text-center">
+                            <div class="text-lg font-semibold mb-2">${teacher.name}</div>
+                            <div class="text-gray-600 mb-3">Gagal mengirim data ke Google Spreadsheet</div>
+                            <div class="p-3 bg-red-50 rounded-lg">
+                                <div class="text-sm text-red-800">
+                                    📡 Periksa koneksi internet dan coba lagi
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    confirmButtonText: 'Coba Lagi',
+                    confirmButtonColor: '#ef4444',
+                    allowOutsideClick: false
+                });
+                
                 // Hapus dari local data jika gagal sync
                 attendanceData.pop();
             }
@@ -1481,5 +1684,5 @@ function doGet(e) {
             loadDataFromGoogleSheets();
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98c37eaf33239cf6',t:'MTc2MDA3MTgwNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98c38fdfc4a43f71',t:'MTc2MDA3MjUwOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
