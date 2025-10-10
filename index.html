@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,24 +12,19 @@
         body {
             box-sizing: border-box;
         }
-
         .tab-content {
             display: none;
         }
-
         .tab-content.active {
             display: block;
         }
-
         .scanner-container {
             max-width: 400px;
             margin: 0 auto;
         }
-
         #qr-reader {
             width: 100%;
         }
-
         .qr-display {
             background: white;
             padding: 20px;
@@ -38,37 +32,31 @@
             text-align: center;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-
         .admin-tab-content {
             display: block;
         }
-
         .admin-tab-content[style*="display: none"] {
             display: none !important;
         }
     </style>
 </head>
-
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-full">
     <div class="container mx-auto px-4 py-6">
         <!-- Header -->
         <div class="text-center mb-8">
             <h1 class="text-3xl font-bold text-indigo-800 mb-2">Aplikasi Absensi KKG Guru PAI</h1>
             <p class="text-lg text-gray-600">Binaan Pengawas: Buk Dewi Yuliani, S.Ag, M.Pd</p>
-
+            
             <!-- Setup Instructions (Hidden by default) -->
-            <div id="setupInstructions" class="mt-4 p-4 bg-blue-50 rounded-lg text-left max-w-4xl mx-auto"
-                style="display: none;">
+            <div id="setupInstructions" class="mt-4 p-4 bg-blue-50 rounded-lg text-left max-w-4xl mx-auto" style="display: none;">
                 <h3 class="font-bold text-blue-800 mb-3">📋 Petunjuk Setup Google Apps Script:</h3>
                 <div class="text-sm text-blue-700 space-y-2">
                     <p><strong>1. Buat Google Spreadsheet baru</strong> dengan 2 sheet: "DataGuru" dan "DataAbsensi"</p>
-                    <p><strong>2. Di sheet "DataGuru"</strong> buat header: ID_Guru | Nama_Lengkap | Sekolah | Kecamatan
-                        | Tanggal_Dibuat</p>
-                    <p><strong>3. Di sheet "DataAbsensi"</strong> buat header: ID | ID_Guru | Nama_Lengkap | Sekolah |
-                        Kecamatan | Tanggal | Waktu | Timestamp</p>
+                    <p><strong>2. Di sheet "DataGuru"</strong> buat header: ID_Guru | Nama_Lengkap | Sekolah | Kecamatan | Tanggal_Dibuat</p>
+                    <p><strong>3. Di sheet "DataAbsensi"</strong> buat header: ID | ID_Guru | Nama_Lengkap | Sekolah | Kecamatan | Tanggal | Waktu | Timestamp</p>
                     <p><strong>4. Buka Extensions → Apps Script</strong> dan paste kode berikut:</p>
                     <div class="bg-gray-800 text-green-400 p-3 rounded mt-2 text-xs overflow-x-auto">
-                        <pre>function doPost(e) {
+<pre>function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
     const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -170,8 +158,7 @@ function doGet(e) {
                     <p><strong>5. Deploy sebagai Web App</strong> dengan akses "Anyone" dan copy URL-nya</p>
                     <p><strong>6. Ganti YOUR_SCRIPT_ID</strong> di kode dengan ID script Anda</p>
                 </div>
-                <button onclick="document.getElementById('setupInstructions').style.display='none'"
-                    class="mt-3 bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">
+                <button onclick="document.getElementById('setupInstructions').style.display='none'" class="mt-3 bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">
                     Tutup Petunjuk
                 </button>
             </div>
@@ -180,12 +167,10 @@ function doGet(e) {
         <!-- Tab Navigation -->
         <div class="flex justify-center mb-6">
             <div class="bg-white rounded-lg p-1 shadow-md">
-                <button id="userTab"
-                    class="tab-btn px-6 py-3 rounded-md font-medium transition-all duration-200 bg-indigo-600 text-white">
+                <button id="userTab" class="tab-btn px-6 py-3 rounded-md font-medium transition-all duration-200 bg-indigo-600 text-white">
                     👤 Guru PAI
                 </button>
-                <button id="adminTab"
-                    class="tab-btn px-6 py-3 rounded-md font-medium transition-all duration-200 text-gray-600 hover:text-indigo-600">
+                <button id="adminTab" class="tab-btn px-6 py-3 rounded-md font-medium transition-all duration-200 text-gray-600 hover:text-indigo-600">
                     🔧 Pengawas
                 </button>
             </div>
@@ -199,23 +184,19 @@ function doGet(e) {
                 <form id="userLoginForm">
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2">ID Guru</label>
-                        <input type="text" id="userId"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            placeholder="Masukkan ID Guru" required>
+                        <input type="text" id="userId" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Masukkan ID Guru" required>
                     </div>
                     <div class="mb-4">
                         <label class="flex items-center">
-                            <input type="checkbox" id="rememberMe"
-                                class="mr-2 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                            <input type="checkbox" id="rememberMe" class="mr-2 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
                             <span class="text-sm text-gray-700">Ingat ID Guru saya</span>
                         </label>
                     </div>
-                    <button type="submit"
-                        class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-200 font-medium">
+                    <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-200 font-medium">
                         Login
                     </button>
                 </form>
-
+                
                 <!-- Saved IDs Section -->
                 <div id="savedIdsSection" class="mt-6 pt-4 border-t border-gray-200" style="display: none;">
                     <h3 class="text-sm font-medium text-gray-700 mb-3">ID Tersimpan:</h3>
@@ -230,8 +211,7 @@ function doGet(e) {
                         <h2 class="text-2xl font-bold text-gray-800">Dashboard Guru PAI</h2>
                         <p class="text-gray-600">Selamat datang, <span id="welcomeUser" class="font-medium"></span></p>
                     </div>
-                    <button id="logoutBtn"
-                        class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-200">
+                    <button id="logoutBtn" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-200">
                         Logout
                     </button>
                 </div>
@@ -242,18 +222,15 @@ function doGet(e) {
                     <div class="bg-gray-100 rounded-lg p-4 mb-4">
                         <div id="qr-reader"></div>
                         <div class="text-center mt-4">
-                            <button id="startScanBtn"
-                                class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition duration-200 font-medium">
+                            <button id="startScanBtn" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition duration-200 font-medium">
                                 📷 Mulai Scan
                             </button>
-                            <button id="stopScanBtn"
-                                class="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 transition duration-200 font-medium ml-2"
-                                style="display: none;">
+                            <button id="stopScanBtn" class="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 transition duration-200 font-medium ml-2" style="display: none;">
                                 ⏹️ Stop Scan
                             </button>
                         </div>
                     </div>
-
+                    
                     <!-- Status Message -->
                     <div id="scanStatus" class="text-center p-4 rounded-md mb-4" style="display: none;"></div>
                 </div>
@@ -276,18 +253,13 @@ function doGet(e) {
                 <form id="adminLogin">
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2">Username Pengawas</label>
-                        <input type="text" id="adminUsername"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            placeholder="pengawas" required>
+                        <input type="text" id="adminUsername" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="pengawas" required>
                     </div>
                     <div class="mb-6">
                         <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
-                        <input type="password" id="adminPassword"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            placeholder="password" required>
+                        <input type="password" id="adminPassword" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="password" required>
                     </div>
-                    <button type="submit"
-                        class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-200 font-medium">
+                    <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-200 font-medium">
                         Login Pengawas
                     </button>
                 </form>
@@ -297,8 +269,7 @@ function doGet(e) {
             <div id="adminDashboard" class="max-w-6xl mx-auto bg-white rounded-lg shadow-lg p-6" style="display: none;">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold text-gray-800">Dashboard Pengawas</h2>
-                    <button id="adminLogoutBtn"
-                        class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-200">
+                    <button id="adminLogoutBtn" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-200">
                         Logout
                     </button>
                 </div>
@@ -306,12 +277,10 @@ function doGet(e) {
                 <!-- Admin Sub Tabs -->
                 <div class="flex justify-center mb-6">
                     <div class="bg-gray-100 rounded-lg p-1">
-                        <button id="attendanceSubTab"
-                            class="admin-sub-tab px-4 py-2 rounded-md font-medium transition-all duration-200 bg-indigo-600 text-white text-sm">
+                        <button id="attendanceSubTab" class="admin-sub-tab px-4 py-2 rounded-md font-medium transition-all duration-200 bg-indigo-600 text-white text-sm">
                             📊 Absensi
                         </button>
-                        <button id="teacherSubTab"
-                            class="admin-sub-tab px-4 py-2 rounded-md font-medium transition-all duration-200 text-gray-600 hover:text-indigo-600 text-sm">
+                        <button id="teacherSubTab" class="admin-sub-tab px-4 py-2 rounded-md font-medium transition-all duration-200 text-gray-600 hover:text-indigo-600 text-sm">
                             👥 Data Guru
                         </button>
                     </div>
@@ -321,128 +290,113 @@ function doGet(e) {
                 <div id="attendanceTabContent" class="admin-tab-content">
                     <!-- QR Code Generator -->
                     <div class="grid md:grid-cols-2 gap-6 mb-8">
-                        <div class="qr-display">
-                            <h3 class="text-xl font-bold mb-4 text-gray-800">QR Code Absensi</h3>
-                            <div id="qrCodeDisplay" class="mb-4">
-                                <div
-                                    class="w-48 h-48 mx-auto bg-white rounded-lg flex items-center justify-center border-2 border-gray-200">
-                                    <canvas id="qrCanvas" width="192" height="192"></canvas>
-                                </div>
-                            </div>
-                            <button id="generateQRBtn"
-                                class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200 font-medium">
-                                🔄 Generate QR Baru
-                            </button>
-                            <p class="text-sm text-gray-600 mt-2">Berlaku: <span id="qrValidTime">-</span></p>
-                        </div>
-
-                        <!-- Quick Stats -->
-                        <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6">
-                            <h3 id="statsTitle" class="text-xl font-bold mb-4 text-gray-800">Statistik Hari Ini</h3>
-                            <div class="space-y-3">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Total Hadir:</span>
-                                    <span id="totalPresent" class="font-bold text-green-600">0</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Waktu Terakhir:</span>
-                                    <span id="lastScanTime" class="font-medium text-gray-800">-</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Status Sync:</span>
-                                    <span id="syncStatusBadge"
-                                        class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">Offline</span>
-                                </div>
-                            </div>
-                            <div class="mt-4 space-y-2">
-                                <button id="loadDataBtn"
-                                    class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition duration-200 font-medium text-sm">
-                                    📥 Muat dari Sheets
-                                </button>
-                                <button id="testConnectionBtn"
-                                    class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200 font-medium text-sm">
-                                    🔧 Test Koneksi
-                                </button>
-                                <button id="refreshDataBtn"
-                                    class="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition duration-200 font-medium text-sm">
-                                    🔄 Refresh Tabel
-                                </button>
-                            </div>
-                            <div id="debugInfo" class="mt-3 text-xs text-gray-600 bg-gray-50 p-2 rounded"
-                                style="display: none;">
-                                <div>URL: <span id="debugUrl" class="font-mono"></span></div>
-                                <div>Status: <span id="debugStatus"></span></div>
-                                <div>Response: <span id="debugResponse" class="font-mono"></span></div>
+                    <div class="qr-display">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">QR Code Absensi</h3>
+                        <div id="qrCodeDisplay" class="mb-4">
+                            <div class="w-48 h-48 mx-auto bg-white rounded-lg flex items-center justify-center border-2 border-gray-200">
+                                <canvas id="qrCanvas" width="192" height="192"></canvas>
                             </div>
                         </div>
+                        <button id="generateQRBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200 font-medium">
+                            🔄 Generate QR Baru
+                        </button>
+                        <p class="text-sm text-gray-600 mt-2">Berlaku: <span id="qrValidTime">-</span></p>
                     </div>
 
-                    <!-- Data Absensi -->
-                    <div>
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-xl font-bold text-gray-800">Data Absensi</h3>
-                            <button id="exportBtn"
-                                class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200 font-medium">
-                                📊 Export Data
+                    <!-- Quick Stats -->
+                    <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6">
+                        <h3 id="statsTitle" class="text-xl font-bold mb-4 text-gray-800">Statistik Hari Ini</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Total Hadir:</span>
+                                <span id="totalPresent" class="font-bold text-green-600">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Waktu Terakhir:</span>
+                                <span id="lastScanTime" class="font-medium text-gray-800">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Status Sync:</span>
+                                <span id="syncStatusBadge" class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">Offline</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 space-y-2">
+                            <button id="loadDataBtn" class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition duration-200 font-medium text-sm">
+                                📥 Muat dari Sheets
+                            </button>
+                            <button id="testConnectionBtn" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200 font-medium text-sm">
+                                🔧 Test Koneksi
+                            </button>
+                            <button id="refreshDataBtn" class="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition duration-200 font-medium text-sm">
+                                🔄 Refresh Tabel
                             </button>
                         </div>
-
-                        <!-- Filter Section -->
-                        <div class="bg-gray-50 rounded-lg p-4 mb-4">
-                            <div class="grid md:grid-cols-4 gap-4 items-end">
-                                <div>
-                                    <label class="block text-gray-700 text-sm font-bold mb-2">Filter Tanggal</label>
-                                    <input type="date" id="filterDate"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
-                                </div>
-                                <div>
-                                    <label class="block text-gray-700 text-sm font-bold mb-2">Filter Kecamatan</label>
-                                    <select id="filterDistrict"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
-                                        <option value="">Semua Kecamatan</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <button id="applyFiltersBtn"
-                                        class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200 font-medium text-sm">
-                                        🔍 Terapkan Filter
-                                    </button>
-                                </div>
-                                <div>
-                                    <button id="clearFiltersBtn"
-                                        class="w-full bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition duration-200 font-medium text-sm">
-                                        🗑️ Reset Filter
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="mt-3 text-sm text-gray-600">
-                                <span id="filterInfo">Menampilkan semua data absensi</span>
-                            </div>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full bg-white border border-gray-200 rounded-lg">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">No</th>
-                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">ID Guru</th>
-                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Nama Lengkap
-                                        </th>
-                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Sekolah</th>
-                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Kecamatan</th>
-                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Waktu Absen
-                                        </th>
-                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="attendanceTable">
-                                    <tr>
-                                        <td colspan="7" class="px-4 py-8 text-center text-gray-500">Belum ada data
-                                            absensi</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div id="debugInfo" class="mt-3 text-xs text-gray-600 bg-gray-50 p-2 rounded" style="display: none;">
+                            <div>URL: <span id="debugUrl" class="font-mono"></span></div>
+                            <div>Status: <span id="debugStatus"></span></div>
+                            <div>Response: <span id="debugResponse" class="font-mono"></span></div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Data Absensi -->
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">Data Absensi</h3>
+                        <button id="exportBtn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200 font-medium">
+                            📊 Export Data
+                        </button>
+                    </div>
+                    
+                    <!-- Filter Section -->
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                        <div class="grid md:grid-cols-4 gap-4 items-end">
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2">Filter Tanggal</label>
+                                <input type="date" id="filterDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2">Filter Kecamatan</label>
+                                <select id="filterDistrict" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                                    <option value="">Semua Kecamatan</option>
+                                </select>
+                            </div>
+                            <div>
+                                <button id="applyFiltersBtn" class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200 font-medium text-sm">
+                                    🔍 Terapkan Filter
+                                </button>
+                            </div>
+                            <div>
+                                <button id="clearFiltersBtn" class="w-full bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition duration-200 font-medium text-sm">
+                                    🗑️ Reset Filter
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-3 text-sm text-gray-600">
+                            <span id="filterInfo">Menampilkan semua data absensi</span>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full bg-white border border-gray-200 rounded-lg">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">No</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">ID Guru</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Nama Lengkap</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Sekolah</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Kecamatan</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Waktu Absen</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendanceTable">
+                                <tr>
+                                    <td colspan="7" class="px-4 py-8 text-center text-gray-500">Belum ada data absensi</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
                 </div>
 
                 <!-- Teacher Management Tab Content -->
@@ -453,21 +407,15 @@ function doGet(e) {
                         <form id="addTeacherForm" class="grid md:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-gray-700 text-sm font-bold mb-2">Nama Lengkap</label>
-                                <input type="text" id="teacherName"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="Nama lengkap guru" required>
+                                <input type="text" id="teacherName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Nama lengkap guru" required>
                             </div>
                             <div>
                                 <label class="block text-gray-700 text-sm font-bold mb-2">Sekolah</label>
-                                <input type="text" id="teacherSchool"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="Nama sekolah" required>
+                                <input type="text" id="teacherSchool" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Nama sekolah" required>
                             </div>
                             <div>
                                 <label class="block text-gray-700 text-sm font-bold mb-2">Kecamatan</label>
-                                <select id="teacherDistrict"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    required>
+                                <select id="teacherDistrict" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
                                     <option value="">Pilih Kecamatan</option>
                                     <option value="Kecamatan A">Kecamatan A</option>
                                     <option value="Kecamatan B">Kecamatan B</option>
@@ -477,8 +425,7 @@ function doGet(e) {
                                 </select>
                             </div>
                             <div class="md:col-span-3 flex justify-end">
-                                <button type="submit"
-                                    class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition duration-200 font-medium">
+                                <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition duration-200 font-medium">
                                     ➕ Tambah Guru
                                 </button>
                             </div>
@@ -510,11 +457,8 @@ function doGet(e) {
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-xl font-bold text-gray-800">Daftar Guru</h3>
                             <div class="flex gap-2">
-                                <input type="text" id="searchTeacher"
-                                    class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="Cari guru...">
-                                <button id="exportTeachersBtn"
-                                    class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200 font-medium">
+                                <input type="text" id="searchTeacher" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Cari guru...">
+                                <button id="exportTeachersBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200 font-medium">
                                     📊 Export Data
                                 </button>
                             </div>
@@ -524,16 +468,14 @@ function doGet(e) {
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">ID Guru</th>
-                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Nama Lengkap
-                                        </th>
+                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Nama Lengkap</th>
                                         <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Sekolah</th>
                                         <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Kecamatan</th>
                                     </tr>
                                 </thead>
                                 <tbody id="teacherTable">
                                     <tr>
-                                        <td colspan="4" class="px-4 py-8 text-center text-gray-500">Belum ada data guru
-                                        </td>
+                                        <td colspan="4" class="px-4 py-8 text-center text-gray-500">Belum ada data guru</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -554,7 +496,7 @@ function doGet(e) {
         let isScanning = false;
         let teacherIdCounter = 1;
         let savedUserIds = [];
-
+        
         // Google Apps Script Configuration
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxY2_mjSnRyN25L2itMDKKdUOUqydfbfCw6rPTrD7FFYRXAuZe7oX5PfzQcN4pA8-Kz/exec';
         let isOnline = navigator.onLine;
@@ -573,20 +515,20 @@ function doGet(e) {
 
         function saveUserId(userId, teacherName = '') {
             if (!userId) return;
-
+            
             // Remove if already exists to avoid duplicates
             savedUserIds = savedUserIds.filter(item => item.id !== userId);
-
+            
             // Add to beginning of array
             savedUserIds.unshift({
                 id: userId,
                 name: teacherName,
                 lastUsed: new Date().toISOString()
             });
-
+            
             // Keep only last 5 IDs
             savedUserIds = savedUserIds.slice(0, 5);
-
+            
             try {
                 localStorage.setItem('kkgSavedIds', JSON.stringify(savedUserIds));
                 updateSavedIdsDisplay();
@@ -608,12 +550,12 @@ function doGet(e) {
         function updateSavedIdsDisplay() {
             const savedIdsSection = document.getElementById('savedIdsSection');
             const savedIdsList = document.getElementById('savedIdsList');
-
+            
             if (savedUserIds.length === 0) {
                 savedIdsSection.style.display = 'none';
                 return;
             }
-
+            
             savedIdsSection.style.display = 'block';
             savedIdsList.innerHTML = savedUserIds.map(item => `
                 <div class="flex items-center justify-between bg-gray-50 rounded-lg p-3">
@@ -645,7 +587,7 @@ function doGet(e) {
             loadDataFromGoogleSheets();
             showSyncStatus('🌐 Koneksi tersambung', 'success');
         });
-
+        
         window.addEventListener('offline', () => {
             isOnline = false;
             showSyncStatus('📱 Tidak ada koneksi internet', 'warning');
@@ -670,14 +612,14 @@ function doGet(e) {
                         data: data
                     })
                 });
-
+                
                 showSyncStatus('✅ Data berhasil disimpan ke Google Sheets', 'success');
-
+                
                 // Reload data after successful sync
                 setTimeout(() => {
                     loadDataFromGoogleSheets();
                 }, 1000);
-
+                
                 return true;
             } catch (error) {
                 console.error('Sync error:', error);
@@ -694,10 +636,10 @@ function doGet(e) {
 
             try {
                 showSyncStatus('🔄 Memuat data dari Google Sheets...', 'info');
-
+                
                 let teachersLoaded = false;
                 let attendanceLoaded = false;
-
+                
                 // Load teachers data from Google Sheets with error handling
                 try {
                     console.log('Loading teachers from:', `${GOOGLE_SCRIPT_URL}?action=getTeachers`);
@@ -709,14 +651,14 @@ function doGet(e) {
                             'Accept': 'application/json, text/plain, */*'
                         }
                     });
-
+                    
                     console.log('Teachers response status:', teachersResponse.status);
-
+                    
                     if (teachersResponse.ok) {
                         const teachersText = await teachersResponse.text();
                         console.log('Teachers raw response length:', teachersText.length);
                         console.log('Teachers raw response preview:', teachersText.substring(0, 200));
-
+                        
                         if (teachersText && teachersText.trim() !== '' && teachersText !== 'No action specified') {
                             try {
                                 const teachers = JSON.parse(teachersText);
@@ -724,7 +666,7 @@ function doGet(e) {
                                     teacherData = teachers.filter(t => t && t.id); // Filter out empty records
                                     console.log('Successfully loaded teachers:', teacherData.length);
                                     teachersLoaded = true;
-
+                                    
                                     // Update counter based on existing data
                                     if (teacherData.length > 0) {
                                         const maxId = Math.max(...teacherData.map(t => {
@@ -751,7 +693,7 @@ function doGet(e) {
                     console.error('Error loading teachers:', teacherError);
                     showSyncStatus('⚠️ Gagal memuat data guru dari Google Sheets', 'error');
                 }
-
+                
                 // Load attendance data from Google Sheets with error handling
                 try {
                     console.log('Loading attendance from:', `${GOOGLE_SCRIPT_URL}?action=getAttendance`);
@@ -763,14 +705,14 @@ function doGet(e) {
                             'Accept': 'application/json, text/plain, */*'
                         }
                     });
-
+                    
                     console.log('Attendance response status:', attendanceResponse.status);
-
+                    
                     if (attendanceResponse.ok) {
                         const attendanceText = await attendanceResponse.text();
                         console.log('Attendance raw response length:', attendanceText.length);
                         console.log('Attendance raw response preview:', attendanceText.substring(0, 200));
-
+                        
                         if (attendanceText && attendanceText.trim() !== '' && attendanceText !== 'No action specified') {
                             try {
                                 const attendance = JSON.parse(attendanceText);
@@ -790,7 +732,7 @@ function doGet(e) {
                                     console.log('Successfully loaded attendance:', attendanceData.length);
                                     console.log('Sample attendance record:', attendanceData[0]);
                                     attendanceLoaded = true;
-
+                                    
                                     // Log sample data for debugging
                                     if (attendanceData.length > 0) {
                                         console.log('Sample attendance dates:', attendanceData.slice(0, 3).map(r => r.date));
@@ -814,31 +756,31 @@ function doGet(e) {
                     console.error('Error loading attendance:', attendanceError);
                     showSyncStatus('⚠️ Gagal memuat data absensi dari Google Sheets', 'error');
                 }
-
+                
                 // Update UI components after loading data
                 console.log('Updating UI with loaded data...');
                 console.log('Final data counts - Teachers:', teacherData.length, 'Attendance:', attendanceData.length);
-
+                
                 updateTeacherStats();
                 updateTeacherTable();
                 updateAdminStats();
                 updateAttendanceTable();
                 populateDistrictFilter(); // Populate district filter options
-
+                
                 // Update user attendance if logged in
                 if (currentUser) {
                     updateUserAttendanceHistory();
                 }
-
+                
                 const totalRecords = teacherData.length + attendanceData.length;
                 if (totalRecords > 0) {
                     showSyncStatus(`✅ Data dimuat: ${teacherData.length} guru, ${attendanceData.length} absensi`, 'success');
                 } else {
                     showSyncStatus('⚠️ Tidak ada data ditemukan di Google Sheets', 'warning');
                 }
-
+                
                 return teachersLoaded && attendanceLoaded;
-
+                
             } catch (error) {
                 console.error('General load error:', error);
                 showSyncStatus('⚠️ Gagal memuat data dari Google Sheets: ' + error.message, 'error');
@@ -858,7 +800,7 @@ function doGet(e) {
 
             syncIndicator.textContent = message;
             syncIndicator.className = 'fixed top-4 right-4 px-4 py-2 rounded-lg text-sm font-medium z-50 transition-all duration-300';
-
+            
             if (type === 'success') {
                 syncIndicator.classList.add('bg-green-100', 'text-green-800', 'border', 'border-green-200');
             } else if (type === 'error') {
@@ -885,7 +827,7 @@ function doGet(e) {
         // Tab functionality
         document.getElementById('userTab').addEventListener('click', () => switchTab('user'));
         document.getElementById('adminTab').addEventListener('click', () => switchTab('admin'));
-
+        
         // Admin sub-tab functionality
         document.getElementById('attendanceSubTab').addEventListener('click', () => switchAdminTab('attendance'));
         document.getElementById('teacherSubTab').addEventListener('click', () => switchAdminTab('teacher'));
@@ -896,7 +838,7 @@ function doGet(e) {
                 btn.classList.remove('bg-indigo-600', 'text-white');
                 btn.classList.add('text-gray-600');
             });
-
+            
             if (tab === 'user') {
                 document.getElementById('userTab').classList.add('bg-indigo-600', 'text-white');
                 document.getElementById('userTab').classList.remove('text-gray-600');
@@ -916,7 +858,7 @@ function doGet(e) {
                 btn.classList.remove('bg-indigo-600', 'text-white');
                 btn.classList.add('text-gray-600');
             });
-
+            
             if (tab === 'attendance') {
                 document.getElementById('attendanceSubTab').classList.add('bg-indigo-600', 'text-white');
                 document.getElementById('attendanceSubTab').classList.remove('text-gray-600');
@@ -933,27 +875,27 @@ function doGet(e) {
         }
 
         // User login
-        document.getElementById('userLoginForm').addEventListener('submit', function (e) {
+        document.getElementById('userLoginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const userId = document.getElementById('userId').value.trim();
             const rememberMe = document.getElementById('rememberMe').checked;
-
+            
             if (userId) {
                 currentUser = userId;
-
+                
                 // Find teacher data to get name
                 const teacher = teacherData.find(t => t.id === userId);
                 const teacherName = teacher ? teacher.name : '';
-
+                
                 // Save ID if remember me is checked
                 if (rememberMe) {
                     saveUserId(userId, teacherName);
                 }
-
+                
                 // Update welcome message with name if available
                 const welcomeText = teacherName ? `${teacherName} (${userId})` : userId;
                 document.getElementById('welcomeUser').textContent = welcomeText;
-
+                
                 document.getElementById('loginForm').style.display = 'none';
                 document.getElementById('userDashboard').style.display = 'block';
                 updateUserAttendanceHistory();
@@ -961,7 +903,7 @@ function doGet(e) {
         });
 
         // User logout
-        document.getElementById('logoutBtn').addEventListener('click', function () {
+        document.getElementById('logoutBtn').addEventListener('click', function() {
             currentUser = null;
             document.getElementById('userId').value = '';
             document.getElementById('rememberMe').checked = false;
@@ -971,24 +913,30 @@ function doGet(e) {
         });
 
         // Admin login
-        document.getElementById('adminLogin').addEventListener('submit', function (e) {
+        document.getElementById('adminLogin').addEventListener('submit', function(e) {
             e.preventDefault();
             const username = document.getElementById('adminUsername').value;
             const password = document.getElementById('adminPassword').value;
-
+            
             if (username === 'admin' && password === 'admin123') {
                 document.getElementById('adminLoginForm').style.display = 'none';
                 document.getElementById('adminDashboard').style.display = 'block';
                 generateQRCode();
-                updateAdminStats();
-                updateAttendanceTable();
+                
+                // Set default filter date to today
+                setDefaultFilterDate();
+                
+                // Apply today's filter automatically
+                setTimeout(() => {
+                    applyFilters();
+                }, 500);
             } else {
                 alert('Username atau password salah!');
             }
         });
 
         // Admin logout
-        document.getElementById('adminLogoutBtn').addEventListener('click', function () {
+        document.getElementById('adminLogoutBtn').addEventListener('click', function() {
             document.getElementById('adminUsername').value = '';
             document.getElementById('adminPassword').value = '';
             document.getElementById('adminLoginForm').style.display = 'block';
@@ -1021,7 +969,7 @@ function doGet(e) {
             }
 
             html5QrCode = new Html5Qrcode("qr-reader");
-
+            
             html5QrCode.start(
                 { facingMode: "environment" },
                 {
@@ -1030,7 +978,7 @@ function doGet(e) {
                 },
                 async (decodedText, decodedResult) => {
                     console.log('QR Code detected:', decodedText);
-
+                    
                     // Check if it's a valid KKG attendance QR code
                     if (decodedText.startsWith('ABSEN_KKG_')) {
                         // Extract date from QR code
@@ -1038,7 +986,7 @@ function doGet(e) {
                         if (qrParts.length >= 3) {
                             const qrDate = qrParts[2]; // Get date part
                             const today = new Date().toLocaleDateString('id-ID');
-
+                            
                             // Check if QR code is for today
                             if (qrDate === today) {
                                 await recordAttendance(currentUser);
@@ -1191,51 +1139,51 @@ function doGet(e) {
             const timestamp = new Date().getTime();
             const date = new Date().toLocaleDateString('id-ID');
             currentQRCode = `ABSEN_KKG_${date}_${timestamp}`;
-
+            
             // Clear previous QR code
             const qrDisplay = document.getElementById('qrCodeDisplay');
             qrDisplay.innerHTML = '<div class="w-48 h-48 mx-auto bg-white rounded-lg flex items-center justify-center border-2 border-gray-200"><div class="text-gray-500">Generating QR...</div></div>';
-
+            
             // Generate QR code using online API
             const qrSize = 200;
             const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${qrSize}x${qrSize}&data=${encodeURIComponent(currentQRCode)}&format=png&margin=10`;
-
+            
             // Create image element
             const qrImage = document.createElement('img');
             qrImage.src = qrUrl;
             qrImage.alt = 'QR Code Absensi';
             qrImage.className = 'w-48 h-48 mx-auto rounded-lg border-2 border-gray-200';
             qrImage.style.imageRendering = 'pixelated'; // Keep QR code crisp
-
-            qrImage.onload = function () {
+            
+            qrImage.onload = function() {
                 qrDisplay.innerHTML = '';
                 qrDisplay.appendChild(qrImage);
                 console.log('QR Code generated successfully');
             };
-
-            qrImage.onerror = function () {
+            
+            qrImage.onerror = function() {
                 console.log('Failed to load QR from API, using SVG fallback');
                 generateSVGQRCode();
             };
-
+            
             const validTime = new Date();
             validTime.setHours(validTime.getHours() + 1);
             document.getElementById('qrValidTime').textContent = validTime.toLocaleTimeString('id-ID');
         }
-
+        
         function generateSVGQRCode() {
             // Fallback SVG QR code generator
             const qrDisplay = document.getElementById('qrCodeDisplay');
             const size = 192;
             const modules = 25; // QR code grid size
             const moduleSize = size / modules;
-
+            
             // Simple QR code pattern generator
             const qrData = generateQRPattern(modules);
-
+            
             let svgContent = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg" class="border-2 border-gray-200 rounded-lg">`;
             svgContent += `<rect width="${size}" height="${size}" fill="white"/>`;
-
+            
             for (let row = 0; row < modules; row++) {
                 for (let col = 0; col < modules; col++) {
                     if (qrData[row][col]) {
@@ -1245,26 +1193,26 @@ function doGet(e) {
                     }
                 }
             }
-
+            
             svgContent += '</svg>';
             qrDisplay.innerHTML = svgContent;
         }
-
+        
         function generateQRPattern(size) {
             // Create a simple QR-like pattern
             const pattern = Array(size).fill().map(() => Array(size).fill(false));
-
+            
             // Add finder patterns (corner squares)
             addFinderPattern(pattern, 0, 0);
             addFinderPattern(pattern, 0, size - 7);
             addFinderPattern(pattern, size - 7, 0);
-
+            
             // Add timing patterns
             for (let i = 8; i < size - 8; i++) {
                 pattern[6][i] = i % 2 === 0;
                 pattern[i][6] = i % 2 === 0;
             }
-
+            
             // Add some data pattern
             for (let row = 9; row < size - 9; row++) {
                 for (let col = 9; col < size - 9; col++) {
@@ -1275,10 +1223,10 @@ function doGet(e) {
                     }
                 }
             }
-
+            
             return pattern;
         }
-
+        
         function addFinderPattern(pattern, startRow, startCol) {
             // 7x7 finder pattern
             for (let row = 0; row < 7; row++) {
@@ -1307,12 +1255,12 @@ function doGet(e) {
         async function recordAttendance(userId) {
             const now = new Date();
             const today = now.toLocaleDateString('id-ID');
-
+            
             // Check if user already attended today (VALIDASI UTAMA)
-            const alreadyAttended = attendanceData.some(record =>
+            const alreadyAttended = attendanceData.some(record => 
                 record.userId === userId && record.date === today
             );
-
+            
             if (alreadyAttended) {
                 // Jika sudah absen, tampilkan SweetAlert error
                 Swal.fire({
@@ -1335,10 +1283,10 @@ function doGet(e) {
                 });
                 return; // Stop di sini, tidak lanjut ke Google Sheets
             }
-
+            
             // Find teacher data based on userId
             const teacher = teacherData.find(t => t.id === userId);
-
+            
             if (!teacher) {
                 Swal.fire({
                     icon: 'error',
@@ -1360,7 +1308,7 @@ function doGet(e) {
                 });
                 return;
             }
-
+            
             // Show loading while processing
             Swal.fire({
                 title: 'Memproses Absensi...',
@@ -1376,7 +1324,7 @@ function doGet(e) {
                     Swal.showLoading();
                 }
             });
-
+            
             // Jika belum absen, buat data absensi baru dengan informasi lengkap guru
             const attendance = {
                 id: attendanceData.length + 1,
@@ -1388,13 +1336,13 @@ function doGet(e) {
                 date: today,
                 time: now.toLocaleTimeString('id-ID')
             };
-
+            
             // Add to local data first
             attendanceData.push(attendance);
-
+            
             // Sync to Google Sheets (hanya jika belum pernah absen)
             const syncSuccess = await syncToGoogleSheets(attendance, 'attendance');
-
+            
             if (syncSuccess) {
                 // Success message with detailed info
                 Swal.fire({
@@ -1428,7 +1376,7 @@ function doGet(e) {
                     timerProgressBar: true,
                     allowOutsideClick: false
                 });
-
+                
                 updateUserAttendanceHistory();
                 updateAdminStats();
                 updateAttendanceTable();
@@ -1452,7 +1400,7 @@ function doGet(e) {
                     confirmButtonColor: '#ef4444',
                     allowOutsideClick: false
                 });
-
+                
                 // Hapus dari local data jika gagal sync
                 attendanceData.pop();
             }
@@ -1460,12 +1408,12 @@ function doGet(e) {
 
         function updateUserAttendanceHistory() {
             if (!currentUser) return;
-
+            
             const today = new Date().toLocaleDateString('id-ID');
-            const userAttendance = attendanceData.filter(record =>
+            const userAttendance = attendanceData.filter(record => 
                 record.userId === currentUser && record.date === today
             );
-
+            
             const historyEl = document.getElementById('attendanceHistory');
             if (userAttendance.length === 0) {
                 historyEl.innerHTML = '<p class="text-gray-600 text-center">Belum ada data absensi hari ini</p>';
@@ -1485,18 +1433,18 @@ function doGet(e) {
             console.log('Updating admin stats...');
             console.log('Total attendance data:', attendanceData.length);
             console.log('Filtered data provided:', filteredData ? filteredData.length : 'none');
-
+            
             // Use filtered data if provided, otherwise use today's data
             let displayData;
             let statsTitle = 'Statistik Hari Ini';
-
+            
             if (filteredData !== null) {
                 displayData = filteredData;
-
+                
                 // Update title based on active filters
                 const filterDate = document.getElementById('filterDate').value;
                 const filterDistrict = document.getElementById('filterDistrict').value;
-
+                
                 if (filterDate && filterDistrict) {
                     const selectedDate = new Date(filterDate).toLocaleDateString('id-ID');
                     statsTitle = `Statistik ${selectedDate} - ${filterDistrict}`;
@@ -1512,11 +1460,11 @@ function doGet(e) {
                 // Check if any filter is active
                 const filterDate = document.getElementById('filterDate').value;
                 const filterDistrict = document.getElementById('filterDistrict').value;
-
+                
                 if (filterDate || filterDistrict) {
                     // Apply current filters
                     displayData = attendanceData;
-
+                    
                     if (filterDate) {
                         // Normalize the filter date (from YYYY-MM-DD to DD/MM/YYYY)
                         let normalizedFilterDate = '';
@@ -1526,11 +1474,11 @@ function doGet(e) {
                                 normalizedFilterDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
                             }
                         }
-
+                        
                         displayData = displayData.filter(record => {
                             let recordDate = record.date;
                             let normalizedRecordDate = '';
-
+                            
                             // Normalize the record date
                             if (recordDate instanceof Date) {
                                 const day = String(recordDate.getDate()).padStart(2, '0');
@@ -1559,15 +1507,15 @@ function doGet(e) {
                                     }
                                 }
                             }
-
+                            
                             return normalizedRecordDate === normalizedFilterDate;
                         });
-
-                        statsTitle = filterDistrict ?
-                            `Statistik ${normalizedFilterDate} - ${filterDistrict}` :
+                        
+                        statsTitle = filterDistrict ? 
+                            `Statistik ${normalizedFilterDate} - ${filterDistrict}` : 
                             `Statistik ${normalizedFilterDate}`;
                     }
-
+                    
                     if (filterDistrict) {
                         displayData = displayData.filter(record => {
                             const recordDistrict = record.kecamatan || (teacherData.find(t => t.id === record.userId)?.district) || '';
@@ -1581,11 +1529,11 @@ function doGet(e) {
                     // No filters active, show today's data
                     const today = new Date().toLocaleDateString('id-ID');
                     console.log('Today date for stats:', today);
-
+                    
                     displayData = attendanceData.filter(record => {
                         let recordDate = record.date;
                         let normalizedRecordDate = '';
-
+                        
                         // Normalize the record date to match today format
                         if (recordDate instanceof Date) {
                             const day = String(recordDate.getDate()).padStart(2, '0');
@@ -1614,26 +1562,26 @@ function doGet(e) {
                                 }
                             }
                         }
-
+                        
                         console.log('Comparing for stats:', normalizedRecordDate, 'with today:', today);
                         return normalizedRecordDate === today;
                     });
-
+                    
                     statsTitle = 'Statistik Hari Ini';
-
+                    
                     console.log('Today attendance for stats:', displayData.length);
                     console.log('Sample dates in data:', attendanceData.slice(0, 3).map(r => r.date));
                 }
             }
-
+            
             console.log('Final display data:', displayData.length);
-
+            
             // Update stats title
             document.getElementById('statsTitle').textContent = statsTitle;
-
+            
             // Update total present
             document.getElementById('totalPresent').textContent = displayData.length;
-
+            
             // Update last scan time
             if (displayData.length > 0) {
                 // Sort by timestamp to get the latest attendance
@@ -1641,15 +1589,15 @@ function doGet(e) {
                     // Try to create proper date objects for comparison
                     const timestampA = new Date(a.timestamp || a.date + ' ' + a.time).getTime();
                     const timestampB = new Date(b.timestamp || b.date + ' ' + b.time).getTime();
-
+                    
                     // If timestamp parsing fails, use string comparison
                     if (isNaN(timestampA) || isNaN(timestampB)) {
                         return (b.time || '').localeCompare(a.time || '');
                     }
-
+                    
                     return timestampB - timestampA; // Latest first
                 });
-
+                
                 const lastAttendance = sortedData[0];
                 document.getElementById('lastScanTime').textContent = lastAttendance.time || '-';
                 console.log('Last attendance time:', lastAttendance.time);
@@ -1661,27 +1609,27 @@ function doGet(e) {
         function updateAttendanceTable(filteredData = null) {
             console.log('Updating attendance table...');
             console.log('Total attendance records:', attendanceData.length);
-
+            
             // Use filtered data if provided, otherwise show all data
             let displayAttendance = filteredData || attendanceData;
-
+            
             console.log('Filtered attendance records:', displayAttendance.length);
-
+            
             const tableBody = document.getElementById('attendanceTable');
-
+            
             if (displayAttendance.length === 0) {
                 tableBody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Tidak ada data absensi sesuai filter</td></tr>';
             } else {
                 tableBody.innerHTML = displayAttendance.map((record, index) => {
                     console.log('Processing record:', record);
-
+                    
                     // Use stored data if available, fallback to finding teacher data
                     const teacherName = record.namaLengkap || (teacherData.find(t => t.id === record.userId)?.name) || record.userId || 'Tidak Diketahui';
                     const teacherSchool = record.sekolah || (teacherData.find(t => t.id === record.userId)?.school) || '-';
                     const teacherDistrict = record.kecamatan || (teacherData.find(t => t.id === record.userId)?.district) || '-';
                     const recordDate = record.date || '-';
                     const recordTime = record.time || '-';
-
+                    
                     return `
                         <tr class="border-t border-gray-200 hover:bg-gray-50">
                             <td class="px-4 py-3 text-sm text-gray-900">${index + 1}</td>
@@ -1702,8 +1650,20 @@ function doGet(e) {
                     `;
                 }).join('');
             }
-
+            
             console.log('Attendance table updated');
+        }
+
+        // Set default filter date to today
+        function setDefaultFilterDate() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const todayString = `${year}-${month}-${day}`;
+            
+            document.getElementById('filterDate').value = todayString;
+            console.log('Default filter date set to:', todayString);
         }
 
         // Filter functions
@@ -1712,10 +1672,10 @@ function doGet(e) {
             const uniqueDistricts = [...new Set(attendanceData.map(record => {
                 return record.kecamatan || (teacherData.find(t => t.id === record.userId)?.district) || '';
             }).filter(district => district !== ''))];
-
+            
             // Clear existing options except the first one
             districtSelect.innerHTML = '<option value="">Semua Kecamatan</option>';
-
+            
             // Add unique districts
             uniqueDistricts.sort().forEach(district => {
                 const option = document.createElement('option');
@@ -1728,32 +1688,32 @@ function doGet(e) {
         async function applyFilters() {
             const filterDate = document.getElementById('filterDate').value;
             const filterDistrict = document.getElementById('filterDistrict').value;
-
+            
             console.log('Applying filters - Date:', filterDate, 'District:', filterDistrict);
-
+            
             // Show loading indicator
             showSyncStatus('🔄 Menyinkronkan data dengan filter...', 'info');
-
+            
             try {
                 // First, sync with Google Sheets to get latest data
                 await loadDataFromGoogleSheets();
-
+                
                 // Wait a moment for data to be loaded
                 await new Promise(resolve => setTimeout(resolve, 1000));
-
+                
                 let filteredData = [...attendanceData]; // Create a copy
                 let filterInfo = 'Menampilkan ';
-
+                
                 console.log('Total data before filtering:', filteredData.length);
-
+                
                 // Apply date filter
                 if (filterDate) {
                     console.log('Filtering by date:', filterDate);
-
+                    
                     // Normalize the filter date (from YYYY-MM-DD to DD/MM/YYYY)
                     let normalizedFilterDate = '';
                     let selectedDate = '';
-
+                    
                     if (filterDate.includes('-')) {
                         const parts = filterDate.split('-');
                         if (parts.length === 3) {
@@ -1761,13 +1721,13 @@ function doGet(e) {
                             selectedDate = normalizedFilterDate;
                         }
                     }
-
+                    
                     console.log('Filter date normalized to:', normalizedFilterDate);
-
+                    
                     filteredData = filteredData.filter(record => {
                         let recordDate = record.date;
                         let normalizedRecordDate = '';
-
+                        
                         // Normalize the record date
                         if (recordDate instanceof Date) {
                             // Convert Date object to DD/MM/YYYY format
@@ -1800,50 +1760,50 @@ function doGet(e) {
                                 }
                             }
                         }
-
+                        
                         console.log('Comparing:', normalizedRecordDate, 'with', normalizedFilterDate);
                         return normalizedRecordDate === normalizedFilterDate;
                     });
-
+                    
                     filterInfo += `tanggal ${selectedDate}`;
                     console.log('After date filter:', filteredData.length);
                 } else {
                     filterInfo += 'semua tanggal';
                 }
-
+                
                 // Apply district filter
                 if (filterDistrict) {
                     console.log('Filtering by district:', filterDistrict);
-
+                    
                     filteredData = filteredData.filter(record => {
                         const recordDistrict = record.kecamatan || (teacherData.find(t => t.id === record.userId)?.district) || '';
                         console.log('Comparing district:', recordDistrict, 'with', filterDistrict);
                         return recordDistrict === filterDistrict;
                     });
-
+                    
                     filterInfo += ` dan kecamatan ${filterDistrict}`;
                     console.log('After district filter:', filteredData.length);
                 } else {
                     filterInfo += ' dan semua kecamatan';
                 }
-
+                
                 console.log('Final filtered data:', filteredData.length);
-
+                
                 // Update filter info
                 document.getElementById('filterInfo').textContent = `${filterInfo} (${filteredData.length} data)`;
-
+                
                 // Update table with filtered data
                 updateAttendanceTable(filteredData);
-
+                
                 // Update admin stats with filtered data
                 updateAdminStats(filteredData);
-
+                
                 // Update export button to export filtered data
                 window.currentFilteredData = filteredData;
-
+                
                 // Show completion message
                 showSyncStatus(`✅ Filter diterapkan: ${filteredData.length} data ditemukan`, 'success');
-
+                
             } catch (error) {
                 console.error('Error applying filters:', error);
                 showSyncStatus('❌ Gagal menerapkan filter: ' + error.message, 'error');
@@ -1854,27 +1814,27 @@ function doGet(e) {
             document.getElementById('filterDate').value = '';
             document.getElementById('filterDistrict').value = '';
             document.getElementById('filterInfo').textContent = 'Menampilkan semua data absensi';
-
+            
             // Reset to show all data
             updateAttendanceTable();
-
+            
             // Reset admin stats to show today's data (pass null to trigger default behavior)
             updateAdminStats(null);
-
+            
             window.currentFilteredData = null;
         }
 
         // Teacher management
-        document.getElementById('addTeacherForm').addEventListener('submit', async function (e) {
+        document.getElementById('addTeacherForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-
+            
             const name = document.getElementById('teacherName').value.trim();
             const school = document.getElementById('teacherSchool').value.trim();
             const district = document.getElementById('teacherDistrict').value;
-
+            
             if (name && school && district) {
                 const teacherId = `GR${String(teacherIdCounter).padStart(4, '0')}`;
-
+                
                 const teacher = {
                     id: teacherId,
                     name: name,
@@ -1883,22 +1843,22 @@ function doGet(e) {
                     createdAt: new Date().toISOString(),
                     isActive: false
                 };
-
+                
                 // Add to local data first
                 teacherData.push(teacher);
                 teacherIdCounter++;
-
+                
                 // Sync to Google Sheets
                 const syncSuccess = await syncToGoogleSheets(teacher, 'teacher');
-
+                
                 if (syncSuccess) {
                     // Reset form
                     document.getElementById('addTeacherForm').reset();
-
+                    
                     // Update displays
                     updateTeacherStats();
                     updateTeacherTable();
-
+                    
                     alert(`Guru berhasil ditambahkan dengan ID: ${teacherId}`);
                 } else {
                     alert('Gagal menambahkan guru. Periksa koneksi internet.');
@@ -1907,25 +1867,25 @@ function doGet(e) {
         });
 
         // Search teacher
-        document.getElementById('searchTeacher').addEventListener('input', function (e) {
+        document.getElementById('searchTeacher').addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
             updateTeacherTable(searchTerm);
         });
 
         // Export teachers
-        document.getElementById('exportTeachersBtn').addEventListener('click', function () {
+        document.getElementById('exportTeachersBtn').addEventListener('click', function() {
             if (teacherData.length === 0) {
                 alert('Tidak ada data guru untuk diekspor');
                 return;
             }
-
+            
             let csvContent = "ID Guru,Nama Lengkap,Sekolah,Kecamatan,Status,Tanggal Dibuat\n";
             teacherData.forEach(teacher => {
                 const status = teacher.isActive ? 'Aktif' : 'Tidak Aktif';
                 const date = new Date(teacher.createdAt).toLocaleDateString('id-ID');
                 csvContent += `${teacher.id},"${teacher.name}","${teacher.school}","${teacher.district}",${status},${date}\n`;
             });
-
+            
             const blob = new Blob([csvContent], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -1940,7 +1900,7 @@ function doGet(e) {
             const activeTeachers = attendanceData.filter(record => record.date === today);
             const uniqueSchools = [...new Set(teacherData.map(teacher => teacher.school))];
             const uniqueDistricts = [...new Set(teacherData.map(teacher => teacher.district))];
-
+            
             document.getElementById('totalTeachers').textContent = teacherData.length;
             document.getElementById('activeTeachers').textContent = activeTeachers.length;
             document.getElementById('totalSchools').textContent = uniqueSchools.length;
@@ -1948,15 +1908,15 @@ function doGet(e) {
         }
 
         function updateTeacherTable(searchTerm = '') {
-            const filteredTeachers = teacherData.filter(teacher =>
+            const filteredTeachers = teacherData.filter(teacher => 
                 teacher.name.toLowerCase().includes(searchTerm) ||
                 teacher.id.toLowerCase().includes(searchTerm) ||
                 teacher.school.toLowerCase().includes(searchTerm) ||
                 teacher.district.toLowerCase().includes(searchTerm)
             );
-
+            
             const tableBody = document.getElementById('teacherTable');
-
+            
             if (filteredTeachers.length === 0) {
                 tableBody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">Tidak ada data guru</td></tr>';
             } else {
@@ -1980,35 +1940,35 @@ function doGet(e) {
         document.getElementById('clearFiltersBtn').addEventListener('click', clearFilters);
 
         // Export functionality
-        document.getElementById('exportBtn').addEventListener('click', function () {
+        document.getElementById('exportBtn').addEventListener('click', function() {
             // Use filtered data if available, otherwise use all data
             const dataToExport = window.currentFilteredData || attendanceData;
-
+            
             if (dataToExport.length === 0) {
                 alert('Tidak ada data untuk diekspor');
                 return;
             }
-
+            
             let csvContent = "No,ID Guru,Nama Lengkap,Sekolah,Kecamatan,Tanggal,Waktu,Status\n";
             dataToExport.forEach((record, index) => {
                 // Use stored data if available, fallback to finding teacher data
                 const teacherName = record.namaLengkap || (teacherData.find(t => t.id === record.userId)?.name) || 'Tidak Diketahui';
                 const teacherSchool = record.sekolah || (teacherData.find(t => t.id === record.userId)?.school) || '-';
                 const teacherDistrict = record.kecamatan || (teacherData.find(t => t.id === record.userId)?.district) || '-';
-
+                
                 csvContent += `${index + 1},${record.userId},"${teacherName}","${teacherSchool}","${teacherDistrict}",${record.date},${record.time},Hadir\n`;
             });
-
+            
             const blob = new Blob([csvContent], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-
+            
             // Generate filename based on filter
             let filename = 'absensi_kkg';
             const filterDate = document.getElementById('filterDate').value;
             const filterDistrict = document.getElementById('filterDistrict').value;
-
+            
             if (filterDate) {
                 filename += `_${filterDate}`;
             }
@@ -2018,48 +1978,48 @@ function doGet(e) {
             if (!filterDate && !filterDistrict) {
                 filename += `_semua_data`;
             }
-
+            
             a.download = `${filename}.csv`;
             a.click();
             window.URL.revokeObjectURL(url);
         });
 
         // Manual sync buttons
-        document.getElementById('loadDataBtn').addEventListener('click', function () {
+        document.getElementById('loadDataBtn').addEventListener('click', function() {
             loadDataFromGoogleSheets();
         });
 
         // Refresh data button
-        document.getElementById('refreshDataBtn').addEventListener('click', function () {
+        document.getElementById('refreshDataBtn').addEventListener('click', function() {
             console.log('Manual refresh triggered');
             console.log('Current data - Teachers:', teacherData.length, 'Attendance:', attendanceData.length);
-
+            
             // Force update all UI components
             updateTeacherStats();
             updateTeacherTable();
             updateAdminStats();
             updateAttendanceTable();
             populateDistrictFilter(); // Update district filter options
-
+            
             if (currentUser) {
                 updateUserAttendanceHistory();
             }
-
+            
             showSyncStatus('🔄 Tabel berhasil di-refresh', 'success');
         });
 
         // Test connection button
-        document.getElementById('testConnectionBtn').addEventListener('click', async function () {
+        document.getElementById('testConnectionBtn').addEventListener('click', async function() {
             const debugInfo = document.getElementById('debugInfo');
             const debugUrl = document.getElementById('debugUrl');
             const debugStatus = document.getElementById('debugStatus');
             const debugResponse = document.getElementById('debugResponse');
-
+            
             debugInfo.style.display = 'block';
             debugUrl.textContent = GOOGLE_SCRIPT_URL;
             debugStatus.textContent = 'Testing...';
             debugResponse.textContent = 'Waiting...';
-
+            
             try {
                 // Test basic connection
                 const testUrl = `${GOOGLE_SCRIPT_URL}?action=test`;
@@ -2067,18 +2027,18 @@ function doGet(e) {
                     method: 'GET',
                     mode: 'cors'
                 });
-
+                
                 debugStatus.textContent = `${response.status} ${response.statusText}`;
-
+                
                 const responseText = await response.text();
                 debugResponse.textContent = responseText.substring(0, 100) + (responseText.length > 100 ? '...' : '');
-
+                
                 if (response.ok) {
                     showSyncStatus('✅ Koneksi ke Google Sheets berhasil!', 'success');
                 } else {
                     showSyncStatus('❌ Koneksi gagal. Periksa URL dan deployment.', 'error');
                 }
-
+                
             } catch (error) {
                 debugStatus.textContent = 'Error';
                 debugResponse.textContent = error.message;
@@ -2089,7 +2049,7 @@ function doGet(e) {
         // Update sync status badge
         function updateSyncStatusBadge() {
             const badge = document.getElementById('syncStatusBadge');
-
+            
             if (isOnline) {
                 badge.textContent = 'Online';
                 badge.className = 'text-xs px-2 py-1 rounded-full bg-green-100 text-green-600';
@@ -2106,7 +2066,7 @@ function doGet(e) {
         updateTeacherTable();
         updateSyncStatusBadge();
         loadSavedIds(); // Load saved IDs on startup
-
+        
         // Generate QR code after page loads and libraries are ready
         window.addEventListener('load', () => {
             setTimeout(() => {
@@ -2118,13 +2078,11 @@ function doGet(e) {
                 }
             }, 1000);
         });
-
+        
         // Load data from Google Sheets on startup
         if (isOnline) {
             loadDataFromGoogleSheets();
         }
     </script>
-    <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'98c41685c2e0fb86',t:'MTc2MDA3ODAyNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
-</body>
-
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98c43da0863b6bf4',t:'MTc2MDA3OTYyNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
