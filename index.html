@@ -68,80 +68,102 @@
                     <p><strong>4. Buka Extensions → Apps Script</strong> dan paste kode berikut:</p>
                     <div class="bg-gray-800 text-green-400 p-3 rounded mt-2 text-xs overflow-x-auto">
                         <pre>function doPost(e) {
-  const data = JSON.parse(e.postData.contents);
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  
-  if (data.action === 'addTeacher') {
-    const sheet = ss.getSheetByName('DataGuru');
-    sheet.appendRow([
-      data.data.id,
-      data.data.name,
-      data.data.school,
-      data.data.district,
-      new Date(data.data.createdAt)
-    ]);
-  } else if (data.action === 'addAttendance') {
-    const sheet = ss.getSheetByName('DataAbsensi');
-    sheet.appendRow([
-      data.data.id,
-      data.data.userId,
-      data.data.namaLengkap,
-      data.data.sekolah,
-      data.data.kecamatan,
-      data.data.date,
-      data.data.time,
-      new Date(data.data.timestamp)
-    ]);
+  try {
+    const data = JSON.parse(e.postData.contents);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    
+    if (data.action === 'addTeacher') {
+      const sheet = ss.getSheetByName('DataGuru');
+      sheet.appendRow([
+        data.data.id,
+        data.data.name,
+        data.data.school,
+        data.data.district,
+        new Date(data.data.createdAt)
+      ]);
+    } else if (data.action === 'addAttendance') {
+      const sheet = ss.getSheetByName('DataAbsensi');
+      sheet.appendRow([
+        data.data.id,
+        data.data.userId,
+        data.data.namaLengkap,
+        data.data.sekolah,
+        data.data.kecamatan,
+        data.data.date,
+        data.data.time,
+        new Date(data.data.timestamp)
+      ]);
+    }
+    
+    return ContentService.createTextOutput('Success');
+  } catch (error) {
+    return ContentService.createTextOutput('Error: ' + error.toString());
   }
-  
-  return ContentService.createTextOutput('Success');
 }
 
 function doGet(e) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  
-  if (e.parameter.action === 'getTeachers') {
-    const sheet = ss.getSheetByName('DataGuru');
-    const data = sheet.getDataRange().getValues();
-    const headers = data[0];
-    const rows = data.slice(1);
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
     
-    const teachers = rows.map(row => ({
-      id: row[0],
-      name: row[1],
-      school: row[2],
-      district: row[3],
-      createdAt: row[4]
-    }));
+    if (e.parameter.action === 'getTeachers') {
+      const sheet = ss.getSheetByName('DataGuru');
+      
+      // Check if sheet has data
+      if (sheet.getLastRow() <= 1) {
+        return ContentService
+          .createTextOutput(JSON.stringify([]))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+      
+      const data = sheet.getDataRange().getValues();
+      const rows = data.slice(1); // Skip header row
+      
+      const teachers = rows.filter(row => row[0]).map(row => ({
+        id: row[0] ? row[0].toString() : '',
+        name: row[1] ? row[1].toString() : '',
+        school: row[2] ? row[2].toString() : '',
+        district: row[3] ? row[3].toString() : '',
+        createdAt: row[4] ? row[4] : new Date()
+      }));
+      
+      return ContentService
+        .createTextOutput(JSON.stringify(teachers))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
     
-    return ContentService
-      .createTextOutput(JSON.stringify(teachers))
-      .setMimeType(ContentService.MimeType.JSON);
+    if (e.parameter.action === 'getAttendance') {
+      const sheet = ss.getSheetByName('DataAbsensi');
+      
+      // Check if sheet has data
+      if (sheet.getLastRow() <= 1) {
+        return ContentService
+          .createTextOutput(JSON.stringify([]))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+      
+      const data = sheet.getDataRange().getValues();
+      const rows = data.slice(1); // Skip header row
+      
+      const attendance = rows.filter(row => row[0]).map(row => ({
+        id: row[0] ? row[0] : '',
+        userId: row[1] ? row[1].toString() : '',
+        namaLengkap: row[2] ? row[2].toString() : '',
+        sekolah: row[3] ? row[3].toString() : '',
+        kecamatan: row[4] ? row[4].toString() : '',
+        date: row[5] ? row[5].toString() : '',
+        time: row[6] ? row[6].toString() : '',
+        timestamp: row[7] ? row[7] : new Date()
+      }));
+      
+      return ContentService
+        .createTextOutput(JSON.stringify(attendance))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    return ContentService.createTextOutput('No action specified');
+  } catch (error) {
+    return ContentService.createTextOutput('Error: ' + error.toString());
   }
-  
-  if (e.parameter.action === 'getAttendance') {
-    const sheet = ss.getSheetByName('DataAbsensi');
-    const data = sheet.getDataRange().getValues();
-    const headers = data[0];
-    const rows = data.slice(1);
-    
-    const attendance = rows.map(row => ({
-      id: row[0],
-      userId: row[1],
-      namaLengkap: row[2],
-      sekolah: row[3],
-      kecamatan: row[4],
-      date: row[5],
-      time: row[6],
-      timestamp: row[7]
-    }));
-    
-    return ContentService
-      .createTextOutput(JSON.stringify(attendance))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-  
-  return ContentService.createTextOutput('No action specified');
 }</pre>
                     </div>
                     <p><strong>5. Deploy sebagai Web App</strong> dengan akses "Anyone" dan copy URL-nya</p>
@@ -324,11 +346,21 @@ function doGet(e) {
                                         class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">Offline</span>
                                 </div>
                             </div>
-                            <div class="mt-4">
+                            <div class="mt-4 space-y-2">
                                 <button id="loadDataBtn"
                                     class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition duration-200 font-medium text-sm">
                                     📥 Muat dari Sheets
                                 </button>
+                                <button id="testConnectionBtn"
+                                    class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200 font-medium text-sm">
+                                    🔧 Test Koneksi
+                                </button>
+                            </div>
+                            <div id="debugInfo" class="mt-3 text-xs text-gray-600 bg-gray-50 p-2 rounded"
+                                style="display: none;">
+                                <div>URL: <span id="debugUrl" class="font-mono"></span></div>
+                                <div>Status: <span id="debugStatus"></span></div>
+                                <div>Response: <span id="debugResponse" class="font-mono"></span></div>
                             </div>
                         </div>
                     </div>
@@ -478,7 +510,7 @@ function doGet(e) {
         let teacherIdCounter = 1;
 
         // Google Apps Script Configuration
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwlDAgK61zPcD6_gxk0rzZb4L5f-ggaKpgATkL3Ptj0P8aoE7aF7SHYr4HNkYkMhNx7/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxY2_mjSnRyN25L2itMDKKdUOUqydfbfCw6rPTrD7FFYRXAuZe7oX5PfzQcN4pA8-Kz/exec';
         let isOnline = navigator.onLine;
 
         // Network status monitoring
@@ -537,34 +569,81 @@ function doGet(e) {
             try {
                 showSyncStatus('🔄 Memuat data dari Google Sheets...', 'info');
 
-                // Load teachers data from Google Sheets
-                const teachersResponse = await fetch(`${GOOGLE_SCRIPT_URL}?action=getTeachers`);
-                if (teachersResponse.ok) {
-                    const teachers = await teachersResponse.json();
-                    teacherData = teachers || [];
+                // Load teachers data from Google Sheets with error handling
+                try {
+                    const teachersResponse = await fetch(`${GOOGLE_SCRIPT_URL}?action=getTeachers`, {
+                        method: 'GET',
+                        mode: 'cors'
+                    });
 
-                    // Update counter based on existing data
-                    if (teacherData.length > 0) {
-                        const maxId = Math.max(...teacherData.map(t => parseInt(t.id.replace('GR', ''))));
-                        teacherIdCounter = maxId + 1;
+                    if (teachersResponse.ok) {
+                        const teachersText = await teachersResponse.text();
+                        console.log('Teachers response:', teachersText);
+
+                        if (teachersText && teachersText !== 'No action specified') {
+                            const teachers = JSON.parse(teachersText);
+                            if (Array.isArray(teachers)) {
+                                teacherData = teachers;
+                                console.log('Loaded teachers:', teacherData.length);
+
+                                // Update counter based on existing data
+                                if (teacherData.length > 0) {
+                                    const maxId = Math.max(...teacherData.map(t => {
+                                        const idNum = parseInt(t.id.replace('GR', ''));
+                                        return isNaN(idNum) ? 0 : idNum;
+                                    }));
+                                    teacherIdCounter = maxId + 1;
+                                }
+                            }
+                        }
+                    } else {
+                        console.error('Teachers response not OK:', teachersResponse.status);
                     }
+                } catch (teacherError) {
+                    console.error('Error loading teachers:', teacherError);
+                    showSyncStatus('⚠️ Gagal memuat data guru dari Google Sheets', 'error');
                 }
 
-                // Load attendance data from Google Sheets
-                const attendanceResponse = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAttendance`);
-                if (attendanceResponse.ok) {
-                    const attendance = await attendanceResponse.json();
-                    attendanceData = attendance || [];
+                // Load attendance data from Google Sheets with error handling
+                try {
+                    const attendanceResponse = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAttendance`, {
+                        method: 'GET',
+                        mode: 'cors'
+                    });
+
+                    if (attendanceResponse.ok) {
+                        const attendanceText = await attendanceResponse.text();
+                        console.log('Attendance response:', attendanceText);
+
+                        if (attendanceText && attendanceText !== 'No action specified') {
+                            const attendance = JSON.parse(attendanceText);
+                            if (Array.isArray(attendance)) {
+                                attendanceData = attendance;
+                                console.log('Loaded attendance:', attendanceData.length);
+                            }
+                        }
+                    } else {
+                        console.error('Attendance response not OK:', attendanceResponse.status);
+                    }
+                } catch (attendanceError) {
+                    console.error('Error loading attendance:', attendanceError);
+                    showSyncStatus('⚠️ Gagal memuat data absensi dari Google Sheets', 'error');
                 }
 
+                // Update UI components
                 updateTeacherStats();
                 updateTeacherTable();
                 updateAdminStats();
                 updateAttendanceTable();
 
-                showSyncStatus('✅ Data berhasil dimuat dari Google Sheets', 'success');
+                if (teacherData.length > 0 || attendanceData.length > 0) {
+                    showSyncStatus(`✅ Data dimuat: ${teacherData.length} guru, ${attendanceData.length} absensi`, 'success');
+                } else {
+                    showSyncStatus('⚠️ Tidak ada data ditemukan di Google Sheets', 'warning');
+                }
+
             } catch (error) {
-                console.error('Load error:', error);
+                console.error('General load error:', error);
                 showSyncStatus('⚠️ Gagal memuat data dari Google Sheets', 'error');
             }
         }
@@ -1180,6 +1259,44 @@ function doGet(e) {
             loadDataFromGoogleSheets();
         });
 
+        // Test connection button
+        document.getElementById('testConnectionBtn').addEventListener('click', async function () {
+            const debugInfo = document.getElementById('debugInfo');
+            const debugUrl = document.getElementById('debugUrl');
+            const debugStatus = document.getElementById('debugStatus');
+            const debugResponse = document.getElementById('debugResponse');
+
+            debugInfo.style.display = 'block';
+            debugUrl.textContent = GOOGLE_SCRIPT_URL;
+            debugStatus.textContent = 'Testing...';
+            debugResponse.textContent = 'Waiting...';
+
+            try {
+                // Test basic connection
+                const testUrl = `${GOOGLE_SCRIPT_URL}?action=test`;
+                const response = await fetch(testUrl, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+
+                debugStatus.textContent = `${response.status} ${response.statusText}`;
+
+                const responseText = await response.text();
+                debugResponse.textContent = responseText.substring(0, 100) + (responseText.length > 100 ? '...' : '');
+
+                if (response.ok) {
+                    showSyncStatus('✅ Koneksi ke Google Sheets berhasil!', 'success');
+                } else {
+                    showSyncStatus('❌ Koneksi gagal. Periksa URL dan deployment.', 'error');
+                }
+
+            } catch (error) {
+                debugStatus.textContent = 'Error';
+                debugResponse.textContent = error.message;
+                showSyncStatus('❌ Error koneksi: ' + error.message, 'error');
+            }
+        });
+
         // Update sync status badge
         function updateSyncStatusBadge() {
             const badge = document.getElementById('syncStatusBadge');
@@ -1217,7 +1334,7 @@ function doGet(e) {
             loadDataFromGoogleSheets();
         }
     </script>
-    <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'98c2e78f933a938e',t:'MTc2MDA2NTYxNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
+    <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'98c2fc3574ef9cf6',t:'MTc2MDA2NjQ2MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
 </body>
 
 </html>
