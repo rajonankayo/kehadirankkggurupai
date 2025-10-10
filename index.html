@@ -47,6 +47,19 @@
         /* DataTables custom styling */
         .dataTables_wrapper {
             font-family: inherit;
+            width: 100%;
+        }
+        
+        .dataTables_wrapper table {
+            width: 100% !important;
+        }
+        
+        .dataTables_wrapper .dataTables_scroll {
+            width: 100%;
+        }
+        
+        .dataTables_wrapper .dataTables_scrollBody {
+            width: 100%;
         }
         
         .dataTables_filter input {
@@ -574,12 +587,18 @@ function doGet(e) {
             // Initialize Attendance DataTable
             if (attendanceDataTable) {
                 attendanceDataTable.destroy();
+                attendanceDataTable = null;
             }
+            
+            // Clear any existing content first
+            $('#attendanceDataTable tbody').empty();
             
             attendanceDataTable = $('#attendanceDataTable').DataTable({
                 responsive: true,
-                pageLength: 25,
+                pageLength: 10,
                 lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+                scrollX: true,
+                autoWidth: false,
                 language: {
                     search: "Cari:",
                     lengthMenu: "Tampilkan _MENU_ data per halaman",
@@ -599,18 +618,34 @@ function doGet(e) {
                 columnDefs: [
                     { orderable: false, targets: 0 }, // Disable sorting for No column
                     { className: "text-center", targets: [0, 6] } // Center align No and Status columns
+                ],
+                data: [], // Start with empty data
+                columns: [
+                    { title: "No", width: "5%" },
+                    { title: "ID Guru", width: "10%" },
+                    { title: "Nama Lengkap", width: "20%" },
+                    { title: "Sekolah", width: "25%" },
+                    { title: "Kecamatan", width: "15%" },
+                    { title: "Waktu Absen", width: "15%" },
+                    { title: "Status", width: "10%" }
                 ]
             });
 
             // Initialize Teacher DataTable
             if (teacherDataTable) {
                 teacherDataTable.destroy();
+                teacherDataTable = null;
             }
+            
+            // Clear any existing content first
+            $('#teacherDataTable tbody').empty();
             
             teacherDataTable = $('#teacherDataTable').DataTable({
                 responsive: true,
-                pageLength: 25,
+                pageLength: 10,
                 lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+                scrollX: true,
+                autoWidth: false,
                 language: {
                     search: "Cari:",
                     lengthMenu: "Tampilkan _MENU_ data per halaman",
@@ -629,6 +664,13 @@ function doGet(e) {
                 order: [[0, 'asc']], // Sort by ID column ascending
                 columnDefs: [
                     { className: "text-center", targets: 0 } // Center align ID column
+                ],
+                data: [], // Start with empty data
+                columns: [
+                    { title: "ID Guru", width: "15%" },
+                    { title: "Nama Lengkap", width: "30%" },
+                    { title: "Sekolah", width: "35%" },
+                    { title: "Kecamatan", width: "20%" }
                 ]
             });
         }
@@ -1747,18 +1789,15 @@ function doGet(e) {
             
             console.log('Filtered attendance records:', displayAttendance.length);
             
-            // Clear existing DataTable if it exists
-            if (attendanceDataTable) {
-                attendanceDataTable.clear();
+            // Initialize DataTable if not exists
+            if (!attendanceDataTable) {
+                initializeDataTables();
             }
             
-            if (displayAttendance.length === 0) {
-                // If no DataTable exists, show empty message in tbody
-                if (!attendanceDataTable) {
-                    const tableBody = document.getElementById('attendanceTable');
-                    tableBody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Tidak ada data absensi sesuai filter</td></tr>';
-                }
-            } else {
+            // Clear existing data
+            attendanceDataTable.clear();
+            
+            if (displayAttendance.length > 0) {
                 // Prepare data for DataTable
                 const tableData = displayAttendance.map((record, index) => {
                     console.log('Processing record:', record);
@@ -1780,13 +1819,6 @@ function doGet(e) {
                         '<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Hadir</span>'
                     ];
                 });
-                
-                // Initialize DataTable if not exists, otherwise add data
-                if (!attendanceDataTable) {
-                    // Clear the placeholder row first
-                    document.getElementById('attendanceTable').innerHTML = '';
-                    initializeDataTables();
-                }
                 
                 // Add data to DataTable
                 attendanceDataTable.rows.add(tableData).draw();
@@ -2066,18 +2098,15 @@ function doGet(e) {
             console.log('Updating teacher table...');
             console.log('Total teacher records:', teacherData.length);
             
-            // Clear existing DataTable if it exists
-            if (teacherDataTable) {
-                teacherDataTable.clear();
+            // Initialize DataTable if not exists
+            if (!teacherDataTable) {
+                initializeDataTables();
             }
             
-            if (teacherData.length === 0) {
-                // If no DataTable exists, show empty message in tbody
-                if (!teacherDataTable) {
-                    const tableBody = document.getElementById('teacherTable');
-                    tableBody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">Tidak ada data guru</td></tr>';
-                }
-            } else {
+            // Clear existing data
+            teacherDataTable.clear();
+            
+            if (teacherData.length > 0) {
                 // Prepare data for DataTable
                 const tableData = teacherData.map(teacher => {
                     return [
@@ -2087,13 +2116,6 @@ function doGet(e) {
                         teacher.district
                     ];
                 });
-                
-                // Initialize DataTable if not exists, otherwise add data
-                if (!teacherDataTable) {
-                    // Clear the placeholder row first
-                    document.getElementById('teacherTable').innerHTML = '';
-                    initializeDataTables();
-                }
                 
                 // Add data to DataTable
                 teacherDataTable.rows.add(tableData).draw();
@@ -2270,5 +2292,5 @@ function doGet(e) {
             loadDataFromGoogleSheets();
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98c4463f34456bf4',t:'MTc2MDA3OTk4MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98c4549de2806bf4',t:'MTc2MDA4MDU2OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
