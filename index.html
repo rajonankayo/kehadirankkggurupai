@@ -9,6 +9,8 @@
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- SheetJS library for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- DataTables CSS and JS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/dataTables.tailwindcss.min.css">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -2493,22 +2495,51 @@ function doGet(e) {
                 return;
             }
 
-            let csvContent = "No Akun,Nama Lengkap,Sekolah,Kecamatan,Status,Tanggal Dibuat\n";
+            // Create Excel workbook
+            const wb = XLSX.utils.book_new();
+
+            // Prepare data for Excel
+            const excelData = [
+                ['No Akun', 'Nama Lengkap', 'Sekolah', 'Kecamatan', 'Status', 'Tanggal Dibuat']
+            ];
+
             dataToExport.forEach(teacher => {
                 // Find original teacher data for additional info
                 const originalTeacher = teacherData.find(t => t.id === teacher.id) || teacher;
                 const status = originalTeacher.isActive ? 'Aktif' : 'Tidak Aktif';
                 const date = originalTeacher.createdAt ? new Date(originalTeacher.createdAt).toLocaleDateString('id-ID') : '-';
-                csvContent += `${teacher.id},"${teacher.name}","${teacher.school}","${teacher.district}",${status},${date}\n`;
+
+                excelData.push([
+                    teacher.id,
+                    teacher.name,
+                    teacher.school,
+                    teacher.district,
+                    status,
+                    date
+                ]);
             });
 
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `data_guru_kkg_${new Date().toLocaleDateString('id-ID').replace(/\//g, '-')}.csv`;
-            a.click();
-            window.URL.revokeObjectURL(url);
+            // Create worksheet
+            const ws = XLSX.utils.aoa_to_sheet(excelData);
+
+            // Set column widths
+            ws['!cols'] = [
+                { width: 12 }, // No Akun
+                { width: 25 }, // Nama Lengkap
+                { width: 30 }, // Sekolah
+                { width: 20 }, // Kecamatan
+                { width: 12 }, // Status
+                { width: 15 }  // Tanggal Dibuat
+            ];
+
+            // Add worksheet to workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Data Guru');
+
+            // Generate filename
+            const filename = `data_guru_kkg_${new Date().toLocaleDateString('id-ID').replace(/\//g, '-')}.xlsx`;
+
+            // Save file
+            XLSX.writeFile(wb, filename);
         });
 
         function updateTeacherStats() {
@@ -2584,7 +2615,14 @@ function doGet(e) {
                 return;
             }
 
-            let csvContent = "No,No Akun,Nama Lengkap,Sekolah,Kecamatan,Tanggal,Waktu,Status\n";
+            // Create Excel workbook
+            const wb = XLSX.utils.book_new();
+
+            // Prepare data for Excel
+            const excelData = [
+                ['No', 'No Akun', 'Nama Lengkap', 'Sekolah', 'Kecamatan', 'Tanggal', 'Waktu', 'Status']
+            ];
+
             dataToExport.forEach((record, index) => {
                 // Use stored data if available, fallback to finding teacher data
                 const teacherName = record.namaLengkap || (teacherData.find(t => t.id === record.userId)?.name) || 'Tidak Diketahui';
@@ -2593,13 +2631,35 @@ function doGet(e) {
                 const recordDate = record.date || '-';
                 const recordTime = record.time || '-';
 
-                csvContent += `${index + 1},${record.userId},"${teacherName}","${teacherSchool}","${teacherDistrict}",${recordDate},${recordTime},Hadir\n`;
+                excelData.push([
+                    index + 1,
+                    record.userId,
+                    teacherName,
+                    teacherSchool,
+                    teacherDistrict,
+                    recordDate,
+                    recordTime,
+                    'Hadir'
+                ]);
             });
 
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
+            // Create worksheet
+            const ws = XLSX.utils.aoa_to_sheet(excelData);
+
+            // Set column widths
+            ws['!cols'] = [
+                { width: 5 },  // No
+                { width: 12 }, // No Akun
+                { width: 25 }, // Nama Lengkap
+                { width: 30 }, // Sekolah
+                { width: 20 }, // Kecamatan
+                { width: 12 }, // Tanggal
+                { width: 10 }, // Waktu
+                { width: 8 }   // Status
+            ];
+
+            // Add worksheet to workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Data Absensi');
 
             // Generate filename based on filter
             let filename = 'absensi_kkg';
@@ -2616,9 +2676,10 @@ function doGet(e) {
                 filename += `_semua_data`;
             }
 
-            a.download = `${filename}.csv`;
-            a.click();
-            window.URL.revokeObjectURL(url);
+            filename += '.xlsx';
+
+            // Save file
+            XLSX.writeFile(wb, filename);
         });
 
         // Token generation button
@@ -2746,8 +2807,7 @@ function doGet(e) {
             });
         }
     </script>
-    <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'991ebe84d5a2410c',t:'MTc2MTAyODYyNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
+    <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'991ee4527650fd35',t:'MTc2MTAzMDE3My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
 </body>
-
 
 </html>
