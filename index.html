@@ -131,9 +131,13 @@
     <div class="container mx-auto px-4 py-6">
         <!-- Header -->
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-indigo-800 mb-2">Aplikasi Absensi KKG Guru PAI</h1>
+            <h1 class="text-3xl font-bold text-indigo-800 mb-2">Aplikasi Absensi KKG/Workshop Guru PAI</h1>
             <p class="text-lg text-gray-600">Binaan Pengawas: <span class="font-bold text-blue-600">Dewi Yuliani, S.Ag,
                     M.A</span></p>
+            <button onclick="document.getElementById('setupInstructions').style.display='block'"
+                class="mt-3 bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">
+                📋 Lihat Petunjuk Setup Google Sheets
+            </button>
 
             <!-- Setup Instructions (Hidden by default) -->
             <div id="setupInstructions" class="mt-4 p-4 bg-blue-50 rounded-lg text-left max-w-4xl mx-auto"
@@ -141,12 +145,15 @@
                 <h3 class="font-bold text-blue-800 mb-3">📋 Petunjuk Setup Google Apps Script - Dewi Yuliani, S.Ag, M.A:
                 </h3>
                 <div class="text-sm text-blue-700 space-y-2">
-                    <p><strong>1. Buat Google Spreadsheet baru</strong> dengan 2 sheet: "DataGuru" dan "DataAbsensi"</p>
+                    <p><strong>1. Buat Google Spreadsheet baru</strong> dengan 3 sheet: "DataGuru", "DataAbsensi", dan
+                        "Token"</p>
                     <p><strong>2. Di sheet "DataGuru"</strong> buat header: ID_Guru | Nama_Lengkap | Sekolah | Kecamatan
                         | Tanggal_Dibuat</p>
                     <p><strong>3. Di sheet "DataAbsensi"</strong> buat header: ID | ID_Guru | Nama_Lengkap | Sekolah |
                         Kecamatan | Tanggal | Waktu | Timestamp</p>
-                    <p><strong>4. Buka Extensions → Apps Script</strong> dan paste kode berikut:</p>
+                    <p><strong>4. Di sheet "Token"</strong> buat header: Token | Tanggal_Dibuat | Waktu_Kadaluarsa |
+                        Status</p>
+                    <p><strong>5. Buka Extensions → Apps Script</strong> dan paste kode berikut:</p>
                     <div class="bg-gray-800 text-green-400 p-3 rounded mt-2 text-xs overflow-x-auto">
                         <pre>function doPost(e) {
   try {
@@ -173,6 +180,27 @@
         data.data.date,
         data.data.time,
         new Date(data.data.timestamp)
+      ]);
+    } else if (data.action === 'saveToken') {
+      const sheet = ss.getSheetByName('Token');
+      
+      // Clear previous tokens (mark as inactive)
+      const lastRow = sheet.getLastRow();
+      if (lastRow > 1) {
+        const range = sheet.getRange(2, 4, lastRow - 1, 1);
+        const values = range.getValues();
+        for (let i = 0; i < values.length; i++) {
+          values[i][0] = 'Tidak Aktif';
+        }
+        range.setValues(values);
+      }
+      
+      // Add new token
+      sheet.appendRow([
+        data.data.token,
+        new Date(data.data.createdAt),
+        new Date(data.data.expiresAt),
+        'Aktif'
       ]);
     }
     
@@ -212,6 +240,45 @@ function doGet(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
     
+    if (e.parameter.action === 'getActiveToken') {
+      const sheet = ss.getSheetByName('Token');
+      
+      // Check if sheet has data
+      if (sheet.getLastRow() <= 1) {
+        return ContentService
+          .createTextOutput(JSON.stringify(null))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+      
+      const data = sheet.getDataRange().getValues();
+      const rows = data.slice(1); // Skip header row
+      
+      // Find active token that hasn't expired
+      const now = new Date();
+      const activeToken = rows.find(row => {
+        const status = row[3] ? row[3].toString() : '';
+        const expiresAt = row[2] ? new Date(row[2]) : null;
+        return status === 'Aktif' && expiresAt && expiresAt > now;
+      });
+      
+      if (activeToken) {
+        const tokenData = {
+          token: activeToken[0] ? activeToken[0].toString() : '',
+          createdAt: activeToken[1] ? activeToken[1] : new Date(),
+          expiresAt: activeToken[2] ? activeToken[2] : new Date(),
+          status: activeToken[3] ? activeToken[3].toString() : ''
+        };
+        
+        return ContentService
+          .createTextOutput(JSON.stringify(tokenData))
+          .setMimeType(ContentService.MimeType.JSON);
+      } else {
+        return ContentService
+          .createTextOutput(JSON.stringify(null))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+    
     if (e.parameter.action === 'getAttendance') {
       const sheet = ss.getSheetByName('DataAbsensi');
       
@@ -247,8 +314,9 @@ function doGet(e) {
   }
 }</pre>
                     </div>
-                    <p><strong>5. Deploy sebagai Web App</strong> dengan akses "Anyone" dan copy URL-nya</p>
-                    <p><strong>6. Ganti YOUR_SCRIPT_ID</strong> di kode dengan ID script Anda</p>
+                    <p><strong>6. Deploy sebagai Web App</strong> dengan akses "Anyone" dan copy URL-nya</p>
+                    <p><strong>7. Ganti URL di kode JavaScript</strong> dengan URL Web App Anda</p>
+                    <p><strong>8. PENTING:</strong> Pastikan sheet "Token" sudah dibuat dengan header yang benar!</p>
                 </div>
                 <button onclick="document.getElementById('setupInstructions').style.display='none'"
                     class="mt-3 bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">
@@ -316,8 +384,30 @@ function doGet(e) {
                     </button>
                 </div>
 
+                <!-- Token Input Section -->
+                <div class="scanner-container mb-6">
+                    <h3 class="text-xl font-bold text-center mb-4 text-gray-800">Masukkan Token Absensi</h3>
+                    <div class="bg-purple-50 rounded-lg p-4 mb-4">
+                        <form id="tokenForm" class="space-y-4">
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2">Token Absensi</label>
+                                <input type="text" id="tokenInput"
+                                    class="w-full px-4 py-3 border border-purple-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-center font-mono text-lg tracking-wider"
+                                    placeholder="Masukkan 4 digit token" maxlength="4" required>
+                            </div>
+                            <button type="submit"
+                                class="w-full bg-purple-600 text-white py-3 px-4 rounded-md hover:bg-purple-700 transition duration-200 font-medium">
+                                🔑 Verifikasi Token
+                            </button>
+                        </form>
+                        <div class="text-center mt-3">
+                            <p class="text-sm text-gray-600">💡 Minta token dari admin untuk mengaktifkan scanner</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Scanner Section -->
-                <div class="scanner-container">
+                <div id="scannerSection" class="scanner-container" style="display: none;">
                     <h3 class="text-xl font-bold text-center mb-4 text-gray-800">Scan QR Code Absensi</h3>
                     <div class="bg-gray-100 rounded-lg p-4 mb-4">
                         <div id="qr-reader"></div>
@@ -336,6 +426,13 @@ function doGet(e) {
 
                     <!-- Status Message -->
                     <div id="scanStatus" class="text-center p-4 rounded-md mb-4" style="display: none;"></div>
+
+                    <!-- Token Status -->
+                    <div class="bg-green-50 rounded-lg p-3 mb-4">
+                        <div class="text-center text-sm text-green-800">
+                            ✅ Token valid! Scanner aktif sampai: <span id="userTokenExpiry">-</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Riwayat Absensi -->
@@ -411,216 +508,240 @@ function doGet(e) {
                             </div>
                             <button id="generateQRBtn"
                                 class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200 font-medium">
-                                🔄 Generate QR Baru
+                                📱 Tampilkan QR Code
                             </button>
-                            <p class="text-sm text-gray-600 mt-2">Berlaku: <span id="qrValidTime">-</span></p>
+                            <p class="text-sm text-gray-600 mt-2">Status: <span id="qrValidTime">-</span></p>
                         </div>
 
-                        <!-- Quick Stats -->
-                        <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6">
-                            <h3 id="statsTitle" class="text-xl font-bold mb-4 text-gray-800">Statistik Hari Ini</h3>
-                            <div class="space-y-3">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Total Hadir:</span>
-                                    <span id="totalPresent" class="font-bold text-green-600">0</span>
+                        <!-- Token Management -->
+                        <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-6">
+                            <h3 class="text-xl font-bold mb-4 text-gray-800">Token Absensi</h3>
+                            <div class="space-y-4">
+                                <div class="bg-white rounded-lg p-4 border-2 border-dashed border-purple-200">
+                                    <div class="text-center">
+                                        <div class="text-sm text-gray-600 mb-2">Token Aktif:</div>
+                                        <div id="currentToken"
+                                            class="text-2xl font-bold text-purple-600 font-mono tracking-wider">
+                                            ----
+                                        </div>
+                                        <div class="text-xs text-gray-500 mt-1">
+                                            Berlaku: <span id="tokenValidTime">-</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Waktu Terakhir:</span>
-                                    <span id="lastScanTime" class="font-medium text-gray-800">-</span>
+                                <div class="grid grid-cols-1 gap-2">
+                                    <button id="generateTokenBtn"
+                                        class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition duration-200 font-medium text-sm">
+                                        🔑 Generate Token
+                                    </button>
                                 </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Status Sync:</span>
-                                    <span id="syncStatusBadge"
-                                        class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">Offline</span>
+                                <div class="text-xs text-gray-600 bg-purple-50 p-2 rounded">
+                                    💡 Token diperlukan guru untuk mengaktifkan kamera scan QR Code
                                 </div>
-                            </div>
-                            <div class="mt-4 space-y-2">
-                                <button id="loadDataBtn"
-                                    class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition duration-200 font-medium text-sm">
-                                    📥 Muat dari Sheets
-                                </button>
-                                <button id="testConnectionBtn"
-                                    class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200 font-medium text-sm">
-                                    🔧 Test Koneksi
-                                </button>
-                                <button id="refreshDataBtn"
-                                    class="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition duration-200 font-medium text-sm">
-                                    🔄 Refresh Tabel
-                                </button>
-                            </div>
-                            <div id="debugInfo" class="mt-3 text-xs text-gray-600 bg-gray-50 p-2 rounded"
-                                style="display: none;">
-                                <div>URL: <span id="debugUrl" class="font-mono"></span></div>
-                                <div>Status: <span id="debugStatus"></span></div>
-                                <div>Response: <span id="debugResponse" class="font-mono"></span></div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Data Absensi -->
-                    <div>
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-xl font-bold text-gray-800">Data Absensi</h3>
-                            <button id="exportBtn"
-                                class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200 font-medium">
-                                📊 Export Data
+                    <!-- Quick Stats -->
+                    <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6">
+                        <h3 id="statsTitle" class="text-xl font-bold mb-4 text-gray-800">Statistik Hari Ini</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Total Hadir:</span>
+                                <span id="totalPresent" class="font-bold text-green-600">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Waktu Terakhir:</span>
+                                <span id="lastScanTime" class="font-medium text-gray-800">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Status Sync:</span>
+                                <span id="syncStatusBadge"
+                                    class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">Offline</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 space-y-2">
+                            <button id="loadDataBtn"
+                                class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition duration-200 font-medium text-sm">
+                                📥 Muat dari Sheets
+                            </button>
+                            <button id="testConnectionBtn"
+                                class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200 font-medium text-sm">
+                                🔧 Test Koneksi
+                            </button>
+                            <button id="refreshDataBtn"
+                                class="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition duration-200 font-medium text-sm">
+                                🔄 Refresh Tabel
                             </button>
                         </div>
-
-                        <!-- Filter Section -->
-                        <div class="bg-gray-50 rounded-lg p-4 mb-4">
-                            <div class="grid md:grid-cols-4 gap-4 items-end">
-                                <div>
-                                    <label class="block text-gray-700 text-sm font-bold mb-2">Filter Tanggal</label>
-                                    <input type="date" id="filterDate"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
-                                </div>
-                                <div>
-                                    <label class="block text-gray-700 text-sm font-bold mb-2">Filter Kecamatan</label>
-                                    <select id="filterDistrict"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
-                                        <option value="">Semua Kecamatan</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <button id="applyFiltersBtn"
-                                        class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200 font-medium text-sm">
-                                        🔍 Terapkan Filter
-                                    </button>
-                                </div>
-                                <div>
-                                    <button id="clearFiltersBtn"
-                                        class="w-full bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition duration-200 font-medium text-sm">
-                                        🗑️ Reset Filter
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="mt-3 text-sm text-gray-600">
-                                <span id="filterInfo">Menampilkan semua data absensi</span>
-                            </div>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table id="attendanceDataTable"
-                                class="w-full bg-white border border-gray-200 rounded-lg display">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">No</th>
-                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">No Akun</th>
-                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Nama Lengkap
-                                        </th>
-                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Sekolah</th>
-                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Kecamatan</th>
-                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Waktu Absen
-                                        </th>
-                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="attendanceTable">
-                                    <tr>
-                                        <td colspan="7" class="px-4 py-8 text-center text-gray-500">Belum ada data
-                                            absensi</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div id="debugInfo" class="mt-3 text-xs text-gray-600 bg-gray-50 p-2 rounded"
+                            style="display: none;">
+                            <div>URL: <span id="debugUrl" class="font-mono"></span></div>
+                            <div>Status: <span id="debugStatus"></span></div>
+                            <div>Response: <span id="debugResponse" class="font-mono"></span></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Teacher Management Tab Content -->
-                <div id="teacherTabContent" class="admin-tab-content" style="display: none;">
-                    <!-- Add Teacher Form (Hidden) -->
-                    <div class="bg-gray-50 rounded-lg p-6 mb-6" style="display: none;">
-                        <h3 class="text-xl font-bold mb-4 text-gray-800">Tambah Data Guru</h3>
-                        <form id="addTeacherForm" class="grid md:grid-cols-3 gap-4">
+                <!-- Data Absensi -->
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">Data Absensi</h3>
+                        <button id="exportBtn"
+                            class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200 font-medium">
+                            📊 Export Data
+                        </button>
+                    </div>
+
+                    <!-- Filter Section -->
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                        <div class="grid md:grid-cols-4 gap-4 items-end">
                             <div>
-                                <label class="block text-gray-700 text-sm font-bold mb-2">Nama Lengkap</label>
-                                <input type="text" id="teacherName"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="Nama lengkap guru" required>
+                                <label class="block text-gray-700 text-sm font-bold mb-2">Filter Tanggal</label>
+                                <input type="date" id="filterDate"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
                             </div>
                             <div>
-                                <label class="block text-gray-700 text-sm font-bold mb-2">Sekolah</label>
-                                <input type="text" id="teacherSchool"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="Nama sekolah" required>
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 text-sm font-bold mb-2">Kecamatan</label>
-                                <select id="teacherDistrict"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    required>
-                                    <option value="">Pilih Kecamatan</option>
-                                    <option value="Kecamatan A">Kecamatan A</option>
-                                    <option value="Kecamatan B">Kecamatan B</option>
-                                    <option value="Kecamatan C">Kecamatan C</option>
-                                    <option value="Kecamatan D">Kecamatan D</option>
-                                    <option value="Kecamatan E">Kecamatan E</option>
+                                <label class="block text-gray-700 text-sm font-bold mb-2">Filter Kecamatan</label>
+                                <select id="filterDistrict"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                                    <option value="">Semua Kecamatan</option>
                                 </select>
                             </div>
-                            <div class="md:col-span-3 flex justify-end">
-                                <button type="submit"
-                                    class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition duration-200 font-medium">
-                                    ➕ Tambah Guru
+                            <div>
+                                <button id="applyFiltersBtn"
+                                    class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200 font-medium text-sm">
+                                    🔍 Terapkan Filter
                                 </button>
                             </div>
-                        </form>
-                    </div>
-
-                    <!-- Teacher Statistics -->
-                    <div class="grid md:grid-cols-4 gap-4 mb-6">
-                        <div class="bg-blue-50 rounded-lg p-4 text-center">
-                            <div class="text-2xl font-bold text-blue-600" id="totalTeachers">0</div>
-                            <div class="text-sm text-gray-600">Total Guru</div>
-                        </div>
-                        <div class="bg-green-50 rounded-lg p-4 text-center">
-                            <div class="text-2xl font-bold text-green-600" id="activeTeachers">0</div>
-                            <div class="text-sm text-gray-600">Aktif Hari Ini</div>
-                        </div>
-                        <div class="bg-yellow-50 rounded-lg p-4 text-center">
-                            <div class="text-2xl font-bold text-yellow-600" id="totalSchools">0</div>
-                            <div class="text-sm text-gray-600">Sekolah</div>
-                        </div>
-                        <div class="bg-purple-50 rounded-lg p-4 text-center">
-                            <div class="text-2xl font-bold text-purple-600" id="totalDistricts">0</div>
-                            <div class="text-sm text-gray-600">Kecamatan</div>
-                        </div>
-                    </div>
-
-                    <!-- Teacher List -->
-                    <div>
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-xl font-bold text-gray-800">Daftar Guru</h3>
-                            <div class="flex gap-2">
-                                <button id="exportTeachersBtn"
-                                    class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200 font-medium">
-                                    📊 Export Data
+                            <div>
+                                <button id="clearFiltersBtn"
+                                    class="w-full bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition duration-200 font-medium text-sm">
+                                    🗑️ Reset Filter
                                 </button>
                             </div>
                         </div>
-                        <div class="overflow-x-auto">
-                            <table id="teacherDataTable"
-                                class="w-full bg-white border border-gray-200 rounded-lg display">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">No Akun</th>
-                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Nama Lengkap
-                                        </th>
-                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Sekolah</th>
-                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Kecamatan</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="teacherTable">
-                                    <tr>
-                                        <td colspan="4" class="px-4 py-8 text-center text-gray-500">Belum ada data guru
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div class="mt-3 text-sm text-gray-600">
+                            <span id="filterInfo">Menampilkan semua data absensi</span>
                         </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table id="attendanceDataTable"
+                            class="w-full bg-white border border-gray-200 rounded-lg display">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">No</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">No Akun</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Nama Lengkap</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Sekolah</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Kecamatan</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Waktu Absen</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendanceTable">
+                                <tr>
+                                    <td colspan="7" class="px-4 py-8 text-center text-gray-500">Belum ada data absensi
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Teacher Management Tab Content -->
+            <div id="teacherTabContent" class="admin-tab-content" style="display: none;">
+                <!-- Add Teacher Form (Hidden) -->
+                <div class="bg-gray-50 rounded-lg p-6 mb-6" style="display: none;">
+                    <h3 class="text-xl font-bold mb-4 text-gray-800">Tambah Data Guru</h3>
+                    <form id="addTeacherForm" class="grid md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Nama Lengkap</label>
+                            <input type="text" id="teacherName"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                placeholder="Nama lengkap guru" required>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Sekolah</label>
+                            <input type="text" id="teacherSchool"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                placeholder="Nama sekolah" required>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Kecamatan</label>
+                            <select id="teacherDistrict"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                required>
+                                <option value="">Pilih Kecamatan</option>
+                                <option value="Kecamatan A">Kecamatan A</option>
+                                <option value="Kecamatan B">Kecamatan B</option>
+                                <option value="Kecamatan C">Kecamatan C</option>
+                                <option value="Kecamatan D">Kecamatan D</option>
+                                <option value="Kecamatan E">Kecamatan E</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-3 flex justify-end">
+                            <button type="submit"
+                                class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition duration-200 font-medium">
+                                ➕ Tambah Guru
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Teacher Statistics -->
+                <div class="grid md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-blue-50 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-blue-600" id="totalTeachers">0</div>
+                        <div class="text-sm text-gray-600">Total Guru</div>
+                    </div>
+                    <div class="bg-green-50 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-green-600" id="activeTeachers">0</div>
+                        <div class="text-sm text-gray-600">Aktif Hari Ini</div>
+                    </div>
+                    <div class="bg-yellow-50 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-yellow-600" id="totalSchools">0</div>
+                        <div class="text-sm text-gray-600">Sekolah</div>
+                    </div>
+                    <div class="bg-purple-50 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-purple-600" id="totalDistricts">0</div>
+                        <div class="text-sm text-gray-600">Kecamatan</div>
+                    </div>
+                </div>
+
+                <!-- Teacher List -->
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">Daftar Guru</h3>
+                        <div class="flex gap-2">
+                            <button id="exportTeachersBtn"
+                                class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200 font-medium">
+                                📊 Export Data
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table id="teacherDataTable" class="w-full bg-white border border-gray-200 rounded-lg display">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">No Akun</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Nama Lengkap</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Sekolah</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Kecamatan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="teacherTable">
+                                <tr>
+                                    <td colspan="4" class="px-4 py-8 text-center text-gray-500">Belum ada data guru</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
     </div>
 
     <script>
@@ -634,12 +755,17 @@ function doGet(e) {
         let teacherIdCounter = 1;
         let savedUserIds = [];
 
+        // Token system variables
+        let currentToken = null;
+        let tokenExpiry = null;
+        let userTokenValid = false;
+
         // DataTables instances
         let attendanceDataTable = null;
         let teacherDataTable = null;
 
         // Google Apps Script Configuration
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxY2_mjSnRyN25L2itMDKKdUOUqydfbfCw6rPTrD7FFYRXAuZe7oX5PfzQcN4pA8-Kz/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXqWB6Q8U0BLS-0ZcuEDr25fbRwJjswnHel64s_JWjRsqttvrefvAJyZWy-66fKjb-/exec';
         let isOnline = navigator.onLine;
 
         // Initialize DataTables
@@ -835,6 +961,15 @@ function doGet(e) {
             }
 
             try {
+                let action;
+                if (type === 'teacher') {
+                    action = 'addTeacher';
+                } else if (type === 'attendance') {
+                    action = 'addAttendance';
+                } else if (type === 'token') {
+                    action = 'saveToken';
+                }
+
                 const response = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
@@ -842,12 +977,16 @@ function doGet(e) {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        action: type === 'teacher' ? 'addTeacher' : 'addAttendance',
+                        action: action,
                         data: data
                     })
                 });
 
-                showSyncStatus('✅ Data berhasil disimpan ke Google Sheets', 'success');
+                if (type === 'token') {
+                    showSyncStatus('✅ Token berhasil disimpan ke Google Sheets', 'success');
+                } else {
+                    showSyncStatus('✅ Data berhasil disimpan ke Google Sheets', 'success');
+                }
 
                 // Reload data after successful sync
                 setTimeout(() => {
@@ -859,6 +998,45 @@ function doGet(e) {
                 console.error('Sync error:', error);
                 showSyncStatus('⚠️ Gagal menyimpan data ke Google Sheets', 'error');
                 return false;
+            }
+        }
+
+        // Load active token from Google Sheets
+        async function loadActiveTokenFromSheets() {
+            if (!isOnline) {
+                return null;
+            }
+
+            try {
+                const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getActiveToken&t=${Date.now()}`, {
+                    method: 'GET',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    headers: {
+                        'Accept': 'application/json, text/plain, */*'
+                    }
+                });
+
+                if (response.ok) {
+                    const responseText = await response.text();
+
+                    if (responseText && responseText.trim() !== '' && responseText !== 'No action specified') {
+                        try {
+                            const tokenData = JSON.parse(responseText);
+                            if (tokenData && tokenData.token) {
+                                console.log('Active token loaded from Sheets:', tokenData);
+                                return tokenData;
+                            }
+                        } catch (parseError) {
+                            console.error('Error parsing token JSON:', parseError);
+                        }
+                    }
+                }
+
+                return null;
+            } catch (error) {
+                console.error('Error loading active token:', error);
+                return null;
             }
         }
 
@@ -1139,10 +1317,13 @@ function doGet(e) {
         // User logout
         document.getElementById('logoutBtn').addEventListener('click', function () {
             currentUser = null;
+            userTokenValid = false;
             document.getElementById('userId').value = '';
             document.getElementById('rememberMe').checked = false;
+            document.getElementById('tokenInput').value = '';
             document.getElementById('loginForm').style.display = 'block';
             document.getElementById('userDashboard').style.display = 'none';
+            document.getElementById('scannerSection').style.display = 'none';
             stopScanning();
         });
 
@@ -1177,6 +1358,221 @@ function doGet(e) {
             document.getElementById('adminDashboard').style.display = 'none';
         });
 
+        // Token form handler
+        document.getElementById('tokenForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const inputToken = document.getElementById('tokenInput').value.trim().toUpperCase();
+
+            // Show loading while verifying
+            Swal.fire({
+                title: 'Memverifikasi Token...',
+                html: 'Memeriksa token dari server...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            const isValid = await verifyToken(inputToken);
+
+            if (isValid) {
+                userTokenValid = true;
+                document.getElementById('scannerSection').style.display = 'block';
+                document.getElementById('userTokenExpiry').textContent = new Date(tokenExpiry).toLocaleTimeString('id-ID');
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Token Valid!',
+                    html: `
+                        <div class="text-center">
+                            <div class="text-lg font-semibold mb-2">Scanner Diaktifkan</div>
+                            <div class="text-gray-600 mb-3">Anda dapat mulai scan QR Code absensi</div>
+                            <div class="p-3 bg-green-50 rounded-lg">
+                                <div class="text-sm text-green-800">
+                                    ⏰ Token berlaku sampai: ${new Date(tokenExpiry).toLocaleTimeString('id-ID')}<br>
+                                    ✅ Token terverifikasi dari server
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    confirmButtonText: 'Mulai Scan',
+                    confirmButtonColor: '#10b981'
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Token Tidak Valid!',
+                    html: `
+                        <div class="text-center">
+                            <div class="text-gray-600 mb-3">Token yang Anda masukkan salah atau sudah kadaluarsa</div>
+                            <div class="p-3 bg-red-50 rounded-lg">
+                                <div class="text-sm text-red-800">
+                                    🔑 Minta token terbaru dari admin<br>
+                                    ⏰ Pastikan token masih berlaku<br>
+                                    📡 Token dicek dari Google Spreadsheet
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    confirmButtonText: 'Coba Lagi',
+                    confirmButtonColor: '#ef4444'
+                });
+                document.getElementById('tokenInput').value = '';
+            }
+        });
+
+        // Token System Functions
+        async function generateToken() {
+            // Generate 4-digit random token
+            const token = Math.floor(1000 + Math.random() * 9000).toString();
+            currentToken = token;
+
+            // Set expiry to 2 hours from now
+            tokenExpiry = new Date();
+            tokenExpiry.setHours(tokenExpiry.getHours() + 2);
+
+            // Prepare token data for Google Sheets
+            const tokenData = {
+                token: token,
+                createdAt: new Date().toISOString(),
+                expiresAt: tokenExpiry.toISOString()
+            };
+
+            // Save token to Google Sheets
+            const syncSuccess = await syncToGoogleSheets(tokenData, 'token');
+
+            // Update UI
+            document.getElementById('currentToken').textContent = token;
+            document.getElementById('tokenValidTime').textContent = tokenExpiry.toLocaleTimeString('id-ID');
+
+            console.log('New token generated:', token, 'Expires:', tokenExpiry);
+
+            if (syncSuccess) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Token Baru Dibuat!',
+                    html: `
+                        <div class="text-center">
+                            <div class="text-3xl font-bold font-mono text-purple-600 mb-3">${token}</div>
+                            <div class="text-gray-600 mb-3">Bagikan token ini kepada guru untuk mengaktifkan scanner</div>
+                            <div class="p-3 bg-purple-50 rounded-lg">
+                                <div class="text-sm text-purple-800">
+                                    ⏰ Berlaku sampai: ${tokenExpiry.toLocaleTimeString('id-ID')}<br>
+                                    🔄 Token akan otomatis kadaluarsa dalam 2 jam<br>
+                                    ✅ Token tersimpan di Google Spreadsheet
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#9333ea'
+                });
+            } else {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Token Dibuat (Offline)',
+                    html: `
+                        <div class="text-center">
+                            <div class="text-3xl font-bold font-mono text-purple-600 mb-3">${token}</div>
+                            <div class="text-gray-600 mb-3">Token berhasil dibuat namun belum tersimpan ke Google Sheets</div>
+                            <div class="p-3 bg-yellow-50 rounded-lg">
+                                <div class="text-sm text-yellow-800">
+                                    ⏰ Berlaku sampai: ${tokenExpiry.toLocaleTimeString('id-ID')}<br>
+                                    📡 Periksa koneksi internet untuk menyimpan ke Sheets
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#f59e0b'
+                });
+            }
+        }
+
+        async function verifyToken(inputToken) {
+            // First check local token
+            if (currentToken && tokenExpiry) {
+                const now = new Date();
+                const isTokenMatch = inputToken === currentToken;
+                const isNotExpired = now < tokenExpiry;
+
+                if (isTokenMatch && isNotExpired) {
+                    console.log('Token verified locally');
+                    return true;
+                }
+            }
+
+            // If local verification fails, check Google Sheets for active token
+            try {
+                const activeTokenData = await loadActiveTokenFromSheets();
+
+                if (activeTokenData && activeTokenData.token) {
+                    const now = new Date();
+                    const expiresAt = new Date(activeTokenData.expiresAt);
+                    const isTokenMatch = inputToken === activeTokenData.token;
+                    const isNotExpired = now < expiresAt;
+
+                    console.log('Token verification from Sheets:', {
+                        input: inputToken,
+                        sheetsToken: activeTokenData.token,
+                        match: isTokenMatch,
+                        expiry: expiresAt,
+                        now: now,
+                        notExpired: isNotExpired
+                    });
+
+                    if (isTokenMatch && isNotExpired) {
+                        // Update local token data
+                        currentToken = activeTokenData.token;
+                        tokenExpiry = expiresAt;
+
+                        // Update UI
+                        document.getElementById('currentToken').textContent = currentToken;
+                        document.getElementById('tokenValidTime').textContent = tokenExpiry.toLocaleTimeString('id-ID');
+
+                        console.log('Token verified from Sheets and synced locally');
+                        return true;
+                    }
+                }
+            } catch (error) {
+                console.error('Error verifying token from Sheets:', error);
+            }
+
+            console.log('Token verification failed');
+            return false;
+        }
+
+        function checkTokenExpiry() {
+            if (userTokenValid && tokenExpiry) {
+                const now = new Date();
+                if (now >= tokenExpiry) {
+                    userTokenValid = false;
+                    document.getElementById('scannerSection').style.display = 'none';
+                    stopScanning();
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Token Kadaluarsa!',
+                        html: `
+                            <div class="text-center">
+                                <div class="text-gray-600 mb-3">Token Anda sudah kadaluarsa</div>
+                                <div class="p-3 bg-yellow-50 rounded-lg">
+                                    <div class="text-sm text-yellow-800">
+                                        🔑 Minta token baru dari admin untuk melanjutkan
+                                    </div>
+                                </div>
+                            </div>
+                        `,
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#f59e0b'
+                    });
+                }
+            }
+        }
+
+        // Check token expiry every minute
+        setInterval(checkTokenExpiry, 60000);
+
         // QR Code Scanner
         document.getElementById('startScanBtn').addEventListener('click', startScanning);
         document.getElementById('stopScanBtn').addEventListener('click', stopScanning);
@@ -1202,6 +1598,27 @@ function doGet(e) {
                 return;
             }
 
+            if (!userTokenValid) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Token Diperlukan!',
+                    html: `
+                        <div class="text-center">
+                            <div class="text-gray-600 mb-3">Masukkan token absensi untuk mengaktifkan scanner</div>
+                            <div class="p-3 bg-purple-50 rounded-lg">
+                                <div class="text-sm text-purple-800">
+                                    🔑 Minta token dari admin<br>
+                                    ⏰ Token berlaku selama 2 jam
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#9333ea'
+                });
+                return;
+            }
+
             html5QrCode = new Html5Qrcode("qr-reader");
 
             html5QrCode.start(
@@ -1213,56 +1630,10 @@ function doGet(e) {
                 async (decodedText, decodedResult) => {
                     console.log('QR Code detected:', decodedText);
 
-                    // Check if it's a valid KKG attendance QR code
-                    if (decodedText.startsWith('ABSEN_KKG_')) {
-                        // Extract date from QR code
-                        const qrParts = decodedText.split('_');
-                        if (qrParts.length >= 3) {
-                            const qrDate = qrParts[2]; // Get date part
-                            const today = new Date().toLocaleDateString('id-ID');
-
-                            // Check if QR code is for today
-                            if (qrDate === today) {
-                                await recordAttendance(currentUser);
-                                stopScanning();
-                            } else {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'QR Code Kadaluarsa!',
-                                    html: `
-                                        <div class="text-center">
-                                            <div class="text-gray-600 mb-3">QR Code ini sudah tidak berlaku</div>
-                                            <div class="p-3 bg-red-50 rounded-lg">
-                                                <div class="text-sm text-red-800">
-                                                    📅 QR Code hanya berlaku untuk hari ini<br>
-                                                    🔄 Minta admin untuk generate QR Code baru
-                                                </div>
-                                            </div>
-                                        </div>
-                                    `,
-                                    confirmButtonText: 'OK',
-                                    confirmButtonColor: '#ef4444'
-                                });
-                            }
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Format QR Code Salah!',
-                                html: `
-                                    <div class="text-center">
-                                        <div class="text-gray-600 mb-3">Format QR Code tidak sesuai</div>
-                                        <div class="p-3 bg-red-50 rounded-lg">
-                                            <div class="text-sm text-red-800">
-                                                ❌ QR Code rusak atau tidak valid<br>
-                                                🔄 Minta admin untuk generate QR Code baru
-                                            </div>
-                                        </div>
-                                    </div>
-                                `,
-                                confirmButtonText: 'OK',
-                                confirmButtonColor: '#ef4444'
-                            });
-                        }
+                    // Check if it's the permanent KKG attendance QR code
+                    if (decodedText === 'ABSEN_KKG_PERMANENT_2024') {
+                        await recordAttendance(currentUser);
+                        stopScanning();
                     } else {
                         Swal.fire({
                             icon: 'warning',
@@ -1366,13 +1737,12 @@ function doGet(e) {
             }
         }
 
-        // QR Code Generation
+        // QR Code Generation - Permanent QR Code
         document.getElementById('generateQRBtn').addEventListener('click', generateQRCode);
 
         function generateQRCode() {
-            const timestamp = new Date().getTime();
-            const date = new Date().toLocaleDateString('id-ID');
-            currentQRCode = `ABSEN_KKG_${date}_${timestamp}`;
+            // Use permanent QR code data
+            currentQRCode = 'ABSEN_KKG_PERMANENT_2024';
 
             // Clear previous QR code
             const qrDisplay = document.getElementById('qrCodeDisplay');
@@ -1385,14 +1755,14 @@ function doGet(e) {
             // Create image element
             const qrImage = document.createElement('img');
             qrImage.src = qrUrl;
-            qrImage.alt = 'QR Code Absensi';
+            qrImage.alt = 'QR Code Absensi Permanen';
             qrImage.className = 'w-48 h-48 mx-auto rounded-lg border-2 border-gray-200';
             qrImage.style.imageRendering = 'pixelated'; // Keep QR code crisp
 
             qrImage.onload = function () {
                 qrDisplay.innerHTML = '';
                 qrDisplay.appendChild(qrImage);
-                console.log('QR Code generated successfully');
+                console.log('Permanent QR Code generated successfully');
             };
 
             qrImage.onerror = function () {
@@ -1400,9 +1770,8 @@ function doGet(e) {
                 generateSVGQRCode();
             };
 
-            const validTime = new Date();
-            validTime.setHours(validTime.getHours() + 1);
-            document.getElementById('qrValidTime').textContent = validTime.toLocaleTimeString('id-ID');
+            // Update valid time to show it's permanent
+            document.getElementById('qrValidTime').textContent = 'Permanen (Berlaku Selamanya)';
         }
 
         function generateSVGQRCode() {
@@ -2252,6 +2621,9 @@ function doGet(e) {
             window.URL.revokeObjectURL(url);
         });
 
+        // Token generation button
+        document.getElementById('generateTokenBtn').addEventListener('click', generateToken);
+
         // Manual sync buttons
         document.getElementById('loadDataBtn').addEventListener('click', function () {
             loadDataFromGoogleSheets();
@@ -2335,14 +2707,16 @@ function doGet(e) {
         updateSyncStatusBadge();
         loadSavedIds(); // Load saved IDs on startup
 
-        // Generate QR code after page loads and libraries are ready
+        // Generate QR code after page loads
         window.addEventListener('load', () => {
             setTimeout(() => {
                 if (typeof QRCode !== 'undefined') {
                     generateQRCode();
                 } else {
                     console.log('QRCode library not loaded yet, retrying...');
-                    setTimeout(generateQRCode, 1000);
+                    setTimeout(() => {
+                        generateQRCode();
+                    }, 1000);
                 }
             }, 1000);
         });
@@ -2350,9 +2724,29 @@ function doGet(e) {
         // Load data from Google Sheets on startup
         if (isOnline) {
             loadDataFromGoogleSheets();
+
+            // Load active token on startup for admin
+            loadActiveTokenFromSheets().then(tokenData => {
+                if (tokenData && tokenData.token) {
+                    currentToken = tokenData.token;
+                    tokenExpiry = new Date(tokenData.expiresAt);
+
+                    // Update admin UI if token is still valid
+                    const now = new Date();
+                    if (tokenExpiry > now) {
+                        document.getElementById('currentToken').textContent = currentToken;
+                        document.getElementById('tokenValidTime').textContent = tokenExpiry.toLocaleTimeString('id-ID');
+                        console.log('Active token loaded on startup:', currentToken);
+                    } else {
+                        console.log('Token found but expired on startup');
+                    }
+                }
+            }).catch(error => {
+                console.error('Error loading token on startup:', error);
+            });
         }
     </script>
-    <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'98c461a6531f6bf4',t:'MTc2MDA4MTEwMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
+    <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'991ebe84d5a2410c',t:'MTc2MTAyODYyNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
 </body>
 
 </html>
