@@ -24,6 +24,27 @@ function doPost(e) {
         data.data.time,
         new Date(data.data.timestamp)
       ]);
+    } else if (data.action === 'saveToken') {
+      const sheet = ss.getSheetByName('Token');
+      
+      // Clear previous tokens (mark as inactive)
+      const lastRow = sheet.getLastRow();
+      if (lastRow > 1) {
+        const range = sheet.getRange(2, 4, lastRow - 1, 1);
+        const values = range.getValues();
+        for (let i = 0; i < values.length; i++) {
+          values[i][0] = 'Tidak Aktif';
+        }
+        range.setValues(values);
+      }
+      
+      // Add new token
+      sheet.appendRow([
+        data.data.token,
+        new Date(data.data.createdAt),
+        new Date(data.data.expiresAt),
+        'Aktif'
+      ]);
     }
     
     return ContentService.createTextOutput('Success');
@@ -60,6 +81,45 @@ function doGet(e) {
       return ContentService
         .createTextOutput(JSON.stringify(teachers))
         .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    if (e.parameter.action === 'getActiveToken') {
+      const sheet = ss.getSheetByName('Token');
+      
+      // Check if sheet has data
+      if (sheet.getLastRow() <= 1) {
+        return ContentService
+          .createTextOutput(JSON.stringify(null))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+      
+      const data = sheet.getDataRange().getValues();
+      const rows = data.slice(1); // Skip header row
+      
+      // Find active token that hasn't expired
+      const now = new Date();
+      const activeToken = rows.find(row => {
+        const status = row[3] ? row[3].toString() : '';
+        const expiresAt = row[2] ? new Date(row[2]) : null;
+        return status === 'Aktif' && expiresAt && expiresAt > now;
+      });
+      
+      if (activeToken) {
+        const tokenData = {
+          token: activeToken[0] ? activeToken[0].toString() : '',
+          createdAt: activeToken[1] ? activeToken[1] : new Date(),
+          expiresAt: activeToken[2] ? activeToken[2] : new Date(),
+          status: activeToken[3] ? activeToken[3].toString() : ''
+        };
+        
+        return ContentService
+          .createTextOutput(JSON.stringify(tokenData))
+          .setMimeType(ContentService.MimeType.JSON);
+      } else {
+        return ContentService
+          .createTextOutput(JSON.stringify(null))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
     }
     
     if (e.parameter.action === 'getAttendance') {
